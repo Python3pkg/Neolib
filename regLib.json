@@ -1,0 +1,14 @@
+{
+  "user": {
+    "neopoints": "href=\"/objects.phtml\\?type=inventory\">(.*?)</a>"
+  },
+  
+  "inventory": {
+    "userInventory": "onclick=\"openwin\\((.*?)\\);\".*?src=\"(.*?)\".*?title=\"(.*?)\".*?<BR>(.*?)<"
+  },
+  
+  "item": {
+    "itemData": "Type<.*?<td>(.*?)<.*?Weight.*?<td>(.*?)<.*?Rarity.*?<td>(.*?)<.*?Value.*?<td>(.*?)<"
+  }
+  
+}

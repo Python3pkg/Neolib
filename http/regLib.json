@@ -1,0 +1,5 @@
+{
+  "User": {
+    "neopoints": "href=\"/objects.phtml?type=inventory\">(.*?)</a>"
+  }
+}
