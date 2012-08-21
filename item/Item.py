@@ -19,6 +19,7 @@ class Item:
     owner = None
     
     def __init__(self, itemName):
+        # Set item name
         self.name = itemName
         
     def populate(self, user, itemID = None):
