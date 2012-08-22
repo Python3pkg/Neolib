@@ -10,7 +10,7 @@ class UserInventory():
     
     def __init__(self, user):
         # Fetch the user's inventory
-        pg = Page("http://www.neopets.com/objects.phtml?type=inventory", user.cookieJar)
+        pg = user.getPage("http://www.neopets.com/objects.phtml?type=inventory")
         
         # Process the items 
         try:
@@ -18,7 +18,7 @@ class UserInventory():
         
             self.items = {}
             self.itemList = []
-        
+            
             # Loop through each item and create an Item instance and append it to self.items
             for mat in mats:
                 tmpItem = Item(mat[3]) # mat[3] = item name

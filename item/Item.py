@@ -32,7 +32,7 @@ class Item:
         
         # Fetch the item's information page
         url = "http://www.neopets.com/iteminfo.phtml?obj_id=" + str(itemID)
-        pg = Page(url, user.cookieJar)
+        pg = user.getPage(url)
         
         # Pull the data
         try:
@@ -137,8 +137,8 @@ class Item:
         temp = ""
     
     def processAction(self, user, action):
-        # Neopets expects a referrer when sending this post data
+        # Neopets expects a specific referrer when sending this post data
         ref = "http://www.neopets.com/iteminfo.phtml?obj_id=" + str(self.id)
-        pg = Page("http://www.neopets.com/useobject.phtml", user.cookieJar, "obj_id=" + str(self.id) + "&action=" + action, {"Referer": ref})
+        pg = user.getPage("http://www.neopets.com/useobject.phtml", "obj_id=" + str(self.id) + "&action=" + action, {"Referer": ref})
         return pg.pageContent
         
