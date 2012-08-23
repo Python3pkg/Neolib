@@ -26,8 +26,7 @@ class HTTPRequestHeader:
         
         # Import any user appended variables
         if vars:
-            for var in vars:
-                self.headerVars[var] = vars[var]
+            self.headerVars.update(vars)
                 
         # Construct the HTTP Request Header
         self.headerContent = """\

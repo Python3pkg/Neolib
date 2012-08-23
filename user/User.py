@@ -43,7 +43,7 @@ class User:
         if pg.pageContent.find(self.username.lower()) != -1:
             # Grab NPs and active Neopet while we have the data
             self.nps = int( RegLib.getMat("user", "neopoints", pg.pageContent)[0].replace(",", "") )
-            
+                
             return True
         else:
             return False
