@@ -11,7 +11,7 @@ class HTTPRequestHeader:
     GET = "GET"
     POST = "POST"
     
-    def __init__(self, type, host, document, cookies = "", postData = "", vars = None):
+    def __init__(self, type, host, document, cookies = "", postData = None, vars = None):
         
         # Verify a proper type was specified
         if not (type == self.GET or type == self.POST):
@@ -27,7 +27,7 @@ class HTTPRequestHeader:
         # Import any user appended variables
         if vars:
             self.headerVars.update(vars)
-                
+                    
         # Construct the HTTP Request Header
         self.headerContent = """\
             %s %s HTTP/%s
@@ -36,28 +36,36 @@ class HTTPRequestHeader:
             Accept: %s
             Accept-Language: %s
             Accept-Encoding: %s
-            Connection: %s
-            Cookie: %s""" % \
-            (type, document, self.headerVars['HTTPVER'], host, self.headerVars['USER-AGENT'], self.headerVars['ACCEPT'], self.headerVars['ACCEPT-LANGUAGE'], self.headerVars['ACCEPT-ENCODING'], self.headerVars['CONNECTION'], cookies)
+            Connection: %s""" % \
+            (type, document, self.headerVars['HTTPVER'], host, self.headerVars['USER-AGENT'], self.headerVars['ACCEPT'], self.headerVars['ACCEPT-LANGUAGE'], self.headerVars['ACCEPT-ENCODING'], self.headerVars['CONNECTION'])
         
         # Remove the indentations I made above
         self.headerContent = dedent(self.headerContent)
+        
+        # If cookies exist, add them
+        if cookies:
+            self.headerContent += "\nCookie: " + cookies
         
         # If referer exists, add it
         if "Referer" in self.headerVars:
             self.headerContent += "\nReferer: " + self.headerVars['Referer']
         
-        # Need to add content length and type if it was a POST
+        # If it was a POST request, build the post data and append headers
+        strData = ""
         if type == self.POST:
+            for key in postData:
+                strData += "=".join([key, postData[key]]) + "&"
+            strData = strData[:-1]
+            
             self.headerContent += "\nContent-Type: application/x-www-form-urlencoded"
-            self.headerContent += "\nContent-Length: " + str(len(postData))
+            self.headerContent += "\nContent-Length: " + str(len(strData))
         
         # Add the new lines at the end
         self.headerContent += "\r\n\r\n"
         
         # If it was a POST, append the data
         if type == self.POST:
-            self.headerContent += postData
+            self.headerContent += strData
             
         # All done!
         

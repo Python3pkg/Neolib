@@ -139,6 +139,6 @@ class Item:
     def processAction(self, user, action):
         # Neopets expects a specific referrer when sending this post data
         ref = "http://www.neopets.com/iteminfo.phtml?obj_id=" + str(self.id)
-        pg = user.getPage("http://www.neopets.com/useobject.phtml", "obj_id=" + str(self.id) + "&action=" + action, {"Referer": ref})
+        pg = user.getPage("http://www.neopets.com/useobject.phtml", {'obj_id': str(self.id), 'action': action}, {"Referer": ref})
         return pg.pageContent
         

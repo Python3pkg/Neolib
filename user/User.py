@@ -32,7 +32,7 @@ class User:
         data = "username=" + self.username + "&password=" + self.password + "&destination=/index.phtml"
         
         # Send it
-        pg = self.getPage("http://www.neopets.com/login.phtml", data)
+        pg = self.getPage("http://www.neopets.com/login.phtml", {'username': self.username, 'password': self.password, 'destination': '/index.phtml'})
         
         # Store cookies
         self.cookieJar = pg.cookies
@@ -52,7 +52,7 @@ class User:
         # Loads the user's current inventory and sets inventory as an UserInventory object
         self.inventory = UserInventory(self)
         
-    def getPage(self, url, postData = "", vars = None):
+    def getPage(self, url, postData = None, vars = None):
         
         # If using a referer is desired and one has not already been supplied, then set the referer to the user's last visited page
         if self.useRef and len(self.lastPage) > 0:

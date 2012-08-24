@@ -9,6 +9,10 @@
   
   "item": {
     "itemData": "Type<.*?<td>(.*?)<.*?Weight.*?<td>(.*?)<.*?Rarity.*?<td>(.*?)<.*?Value.*?<td>(.*?)<"
+  },
+  
+  "page": {
+    "images": "<img.*?src=\"(.*?)\""
   }
   
 }

@@ -6,6 +6,7 @@ from Cookie import Cookie
 import socket
 import zlib
 import logging
+import StringIO
 
 class HTTPWrapper:
     sock = None
@@ -31,15 +32,21 @@ class HTTPWrapper:
         
         # Parse the URL to determine what exactly we're doing
         parsedUrl = urlparse(url)
-        
+            
         # Grab any cookies
         if self.cookieJar:
             cookies = self.cookieJar.getCookies()
         else:
             cookies = ""
         
+        # Add a query if it exists
+        if parsedUrl.query:
+            document = parsedUrl.path + "?" + parsedUrl.query
+        else:
+            document = parsedUrl.path
+        
         # Let's build a request header before connecting
-        rHeader = HTTPRequestHeader(type, parsedUrl.netloc, parsedUrl.path + "?" + parsedUrl.query, cookies, postData, vars)
+        rHeader = HTTPRequestHeader(type, parsedUrl.netloc, document, cookies, postData, vars)
         
         # Now we can connect and send the request
         try:
@@ -49,23 +56,22 @@ class HTTPWrapper:
             self.logger.exception(errMsg)
             raise Exception
             
-        
         # Send the request
         s.sendall(rHeader.headerContent)
         
         # Now begin buffering the response
-        # 16384 is a mid-sized buffer and is divisible by 2, thus making it an ideal choice
+        # 4096 is a mid-sized buffer and is divisible by 2, thus making it an ideal choice
         try:
-            data = s.recv(16384)
-        
+            data = ""
             while True:
-                more = s.recv(16384)
-                if not more:
+                buff = s.recv(4096)
+                
+                if not buff:
                     break
-                else:
-                    data += more
+                
+                data += buff
         except socket.timeout:
-            errMsg = "Connection timed-out while connecting to %s. Request headers were as follows: %s", (parsedURL.netloc, rHeader.headerContent)
+            errMsg = "Connection timed-out while connecting to %s. Request headers were as follows: %s", (parsedUrl.netloc, rHeader.headerContent)
             self.logger.exception(errMsg)
             raise Exception
             
@@ -81,12 +87,14 @@ class HTTPWrapper:
         # Update cookies
         self.cookieJar = CookieJar(self.repHeader.cookies)
         
-        # If the content was gzip encoded, decode it
-        if self.repHeader.respVars['Content-Encoding'].find("gzip") != -1:
-            self.repContent = zlib.decompress(content, 16+zlib.MAX_WBITS)
+        # Check if the content is encoded
+        if "Content-Encoding" in self.repHeader.respVars:
+            # If the content is gzip encoded, decode it
+            if self.repHeader.respVars['Content-Encoding'].find("gzip") != -1:
+                self.repContent = zlib.decompress(content, 16+zlib.MAX_WBITS)
         else:
             self.repContent = content
-        
+            
         # Return the content        
         return self.repContent
         
