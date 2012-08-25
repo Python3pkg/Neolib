@@ -1,5 +1,6 @@
 from HTTPWrapper import HTTPWrapper
-from neolib.RegLib import RegLib
+from neolib.RegexLib import RegexLib
+from exceptions import HTTPException
 import urlparse
 
 class Page:
@@ -7,6 +8,7 @@ class Page:
     cookies = None
     pageHeader = ""
     pageContent = ""
+    success = False
     
     images = None
     
@@ -26,7 +28,12 @@ class Page:
                 type = "GET"
             
             # Make the request
-            self.pageContent = self.wrapper.request(type, url, postData, vars)
+            try:
+                self.pageContent = self.wrapper.request(type, url, postData, vars)
+            except HTTPException:
+                self.success = False
+                self.pageContent = None
+                return
             
             # Set the response header
             self.pageHeader = self.wrapper.repHeader
@@ -36,7 +43,7 @@ class Page:
     
     def loadImages(self):
         # Parse all images
-        mats = RegLib.getMat("page", "images", self.pageContent)
+        mats = RegexLib.getMat("page", "images", self.pageContent)
         
         # Ensure we actually have images
         self.images = {}
@@ -51,13 +58,5 @@ class Page:
         if not path in self.images:
             return False
         
-        # Grab the image data
-        imgData = self.wrapper.request("GET", self.images[path])
-        
-        # Save the image to the given local file
-        f = open(localfile, "wb")
-        f.write(imgData)
-        f.close()
-        
-        # Return operation was successful
-        return True
+        # Download and save the image
+        return self.wrapper.downloadFile("GET", self.images[path], localfile, binary = True):

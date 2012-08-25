@@ -1,4 +1,4 @@
-from neolib.RegLib import RegLib
+from neolib.RegexLib import RegexLib
 from neolib.http.Page import Page
 from neolib.item.Item import Item
 import logging
@@ -13,7 +13,7 @@ class UserInventory():
         
         # Process the items 
         try:
-            mats = RegLib.getMat("inventory", "userInventory", pg.pageContent)
+            mats = RegexLib.getMat("inventory", "userInventory", pg.pageContent)
         
             self.items = {}
             self.itemList = []
@@ -32,7 +32,7 @@ class UserInventory():
                 self.items[mat[3].lower()] = tmpItem
         
         except Exception:
-            logging.getLogger("neolib").exception("Could not parse items out of source: " + pg.pageContent)
+            logging.getLogger("neolib.user").exception("Could not parse items out of source. Source: " + pg.pageContent)
             return
         
         # Set the item count

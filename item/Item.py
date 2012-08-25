@@ -1,5 +1,5 @@
 from neolib.http.Page import Page
-from neolib.RegLib import RegLib
+from neolib.RegexLib import RegexLib
 import logging
 
 class Item:
@@ -36,7 +36,7 @@ class Item:
         
         # Pull the data
         try:
-            data = RegLib.getMat("item", "itemData", pg.pageContent)
+            data = RegexLib.getMat("item", "itemData", pg.pageContent)
             
             # Populate the attributes
             self.type = data[0][0]
@@ -44,7 +44,7 @@ class Item:
             self.rarity = data[0][2]
             self.estVal = data[0][3]
         except Exception:
-            logging.getLogger("neolib").exception("Error parsing item information from source: " + pg.pageContent)
+            logging.getLogger("neolib.item").exception("Error parsing item information from source. Item ID: " + itemID + ". Page Source" + pg.pageContent)
             return False
         
         return True

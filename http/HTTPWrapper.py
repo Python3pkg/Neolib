@@ -3,10 +3,10 @@ from HTTPResponseHeader import HTTPResponseHeader
 from urlparse import urlparse
 from CookieJar import CookieJar
 from Cookie import Cookie
+from exceptions import HTTPException
 import socket
 import zlib
 import logging
-import StringIO
 
 class HTTPWrapper:
     sock = None
@@ -21,7 +21,7 @@ class HTTPWrapper:
     def __init__(self):
         # Setup a logger instance for debugging use
         if not self.logger:
-            self.logger = logging.getLogger("neolib")
+            self.logger = logging.getLogger("neolib.http")
     
     def request(self, type, url, postData = "", vars = None):
         # Create a socket to use
@@ -52,9 +52,9 @@ class HTTPWrapper:
         try:
             s.connect((parsedUrl.netloc, 80))
         except Exception:
-            errMsg = "Failed to connect to host: %s on port 80", parsedURL.netloc
+            errMsg = "Failed to connect to host: %s on port 80" % parsedURL.netloc
             self.logger.exception(errMsg)
-            raise Exception
+            raise HTTPException
             
         # Send the request
         s.sendall(rHeader.headerContent)
@@ -71,9 +71,9 @@ class HTTPWrapper:
                 
                 data += buff
         except socket.timeout:
-            errMsg = "Connection timed-out while connecting to %s. Request headers were as follows: %s", (parsedUrl.netloc, rHeader.headerContent)
+            errMsg = "Connection timed-out while connecting to %s. Request headers were as follows: %s" % (parsedUrl.netloc, rHeader.headerContent)
             self.logger.exception(errMsg)
-            raise Exception
+            raise HTTPException
             
         # Don't forget to close your sockets!
         s.close()
@@ -82,11 +82,17 @@ class HTTPWrapper:
         header, content = data.split("\r\n\r\n")
         
         # Parse the headers for future usage
-        self.repHeader = HTTPResponseHeader(header)
+        try:
+            self.repHeader = HTTPResponseHeader(header)
+        except Exception:
+            raise HTTPException
         
         # Update cookies
-        self.cookieJar = CookieJar(self.repHeader.cookies)
-        
+        if not self.cookieJar:
+            self.cookieJar = CookieJar(self.repHeader.cookies)
+        else:
+            self.cookieJar.addCookies(self.repHeader.cookies)
+            
         # Check if the content is encoded
         if "Content-Encoding" in self.repHeader.respVars:
             # If the content is gzip encoded, decode it
@@ -95,6 +101,29 @@ class HTTPWrapper:
         else:
             self.repContent = content
             
-        # Return the content        
+        # Return the content       
         return self.repContent
         
+    def downloadFile(self, type, url, localpath, cookies = None, postData = "", vars = None, binary = False):
+        # Set any given cookies
+        if cookies:
+            self.cookieJar = cookies
+            
+        try:
+            # Download the file
+            fileData = self.request(type, url, postData, vars)
+        
+            # Determine which method to write with
+            if binary:
+                f = open(localpath, "wb")
+            else:
+                f = open(localpath, "w")
+            
+            # Write and close the file
+            f.write(fileData)
+            f.close
+        except Exception:
+            self.logger.exception("Failed to download file. File URL: " + url + ". Local path: " + localpath)
+            return False
+            
+        return True

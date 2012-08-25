@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from RegLib import RegLib
+from RegexLib import RegexLib
 
 # Sets up to log to a file that looks as such: Neolib 2012-08-18 23-49-16.log.txt
 logFileName = datetime.today().strftime("Neolib %Y-%m-%d %H-%M-%S") + ".log.txt"
@@ -9,8 +9,8 @@ logFileName = datetime.today().strftime("Neolib %Y-%m-%d %H-%M-%S") + ".log.txt"
 logger = logging.getLogger("neolib")
 logger.setLevel(logging.DEBUG)
 
-# Creates the file handler
-fh = logging.FileHandler(logFileName)
+# Creates the file handler and set's delay to True so it only creates the file when a request is issued
+fh = logging.FileHandler(logFileName, delay = True)
 fh.setLevel(logging.DEBUG)
 
 # Creates the console handler 
@@ -29,4 +29,4 @@ logger.addHandler(fh)
 logger.addHandler(ch)
 
 # Load our regex library for use by various modules
-RegLib.loadReg()
+RegexLib.loadReg()

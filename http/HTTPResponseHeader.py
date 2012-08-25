@@ -1,4 +1,3 @@
-import StringIO
 import re
 import logging
 
@@ -15,7 +14,6 @@ class HTTPResponseHeader:
     
     def __init__(self, respHeader):
         self.respContent = respHeader
-        respHeader = StringIO.StringIO(respHeader)
         
         try:
             # First get the version, status code, and status message
@@ -30,7 +28,7 @@ class HTTPResponseHeader:
             # Finally grab the rest of the variables
             self.respVars = dict(re.findall(r"(?P<name>.*?): (?P<value>.*?)\r\n", self.respContent))
         except Exception:
-            logging.getLogger("neolib").exception("Failed to parse HTTP headers: " + self.respContent)
+            logging.getLogger("neolib.http").exception("Failed to parse HTTP headers: " + self.respContent)
             raise Exception
             
             
