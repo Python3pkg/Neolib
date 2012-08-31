@@ -16,14 +16,14 @@ class HTTPWrapper:
     
     timeout = 15.00
     
-    logger = None
+    _logger = None
     
     def __init__(self):
         # Setup a logger instance for debugging use
-        if not self.logger:
-            self.logger = logging.getLogger("neolib.http")
+        if not self._logger:
+            self._logger = logging.getLogger("neolib.http")
     
-    def request(self, type, url, postData = "", vars = None):
+    def request(self, type, url, postData = None, vars = None):
         # Create a socket to use
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
@@ -53,7 +53,7 @@ class HTTPWrapper:
             s.connect((parsedUrl.netloc, 80))
         except Exception:
             errMsg = "Failed to connect to host: %s on port 80" % parsedURL.netloc
-            self.logger.exception(errMsg)
+            self._logger.exception(errMsg)
             raise HTTPException
             
         # Send the request
@@ -72,7 +72,7 @@ class HTTPWrapper:
                 data += buff
         except socket.timeout:
             errMsg = "Connection timed-out while connecting to %s. Request headers were as follows: %s" % (parsedUrl.netloc, rHeader.headerContent)
-            self.logger.exception(errMsg)
+            self._logger.exception(errMsg)
             raise HTTPException
             
         # Don't forget to close your sockets!
@@ -85,6 +85,7 @@ class HTTPWrapper:
         try:
             self.repHeader = HTTPResponseHeader(header)
         except Exception:
+            self._logger.exception("Failed to parse HTTP Response Header. Header content: " + header)
             raise HTTPException
         
         # Update cookies
@@ -123,7 +124,7 @@ class HTTPWrapper:
             f.write(fileData)
             f.close
         except Exception:
-            self.logger.exception("Failed to download file. File URL: " + url + ". Local path: " + localpath)
+            self._logger.exception("Failed to download file. File URL: " + url + ". Local path: " + localpath + "\nResponse Header:\n" + self.repHeader.respContent)
             return False
             
         return True
