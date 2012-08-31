@@ -17,6 +17,10 @@
   
   "wheel": {
     "resp": "<center>(.*?)<.*?src=\"(.*?)\".*?<b>(.*?)<"
+  },
+  
+  "daily": {
+    "tombola": "tombola/(.*?)\\.gif.*?Your Prize - (.*?)<"
   }
   
 }
