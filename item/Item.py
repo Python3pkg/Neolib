@@ -22,9 +22,13 @@ class Item:
         # Set item name
         self.name = itemName
         
-    def populate(self, user, itemID = None):
+    def populate(self, user = None, itemID = None):
         # Ensure an ID exists
         if not self.id and not itemID:
+            return False
+            
+        # Verify we have a user to use
+        if not self.owner and not user:
             return False
         
         # The object's ID is used by default over any provided ID        
