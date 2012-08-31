@@ -59,4 +59,4 @@ class Page:
             return False
         
         # Download and save the image
-        return self.wrapper.downloadFile("GET", self.images[path], localfile, binary = True):
+        return self.wrapper.downloadFile("GET", self.images[path], localfile, binary = True)
