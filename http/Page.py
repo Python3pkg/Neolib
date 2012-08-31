@@ -57,3 +57,6 @@ class Page:
         # Verify a valid path was given
         if not path in self.images:
             return False
+            
+        # Download and save the image
+        return self.wrapper.downloadFile("GET", self.images[path], localfile, binary = True)
