@@ -3,8 +3,8 @@ import logging
 
 class HTTPResponseHeader:
     
-    respContent = ""
-    respVars = {}
+    content = ""
+    vars = {}
     cookies = []
     
     HTTPVer = ""
@@ -13,22 +13,23 @@ class HTTPResponseHeader:
     
     
     def __init__(self, respHeader):
-        self.respContent = respHeader
+        # Set the header content
+        self.content = respHeader
         
         try:
             # First get the version, status code, and status message
-            mat = re.match("HTTP/(.*) (.*) (.*)", self.respContent)
+            mat = re.match("HTTP/(.*) (.*) (.*)", self.content)
             self.HTTPVer = mat.group(1)
             self.statusCode = mat.group(2)
             self.statusMessage = mat.group(3)
         
             # Then grab the cookies
-            self.cookies = re.findall(r"Set-Cookie: (?P<value>.*?)\r\n", self.respContent)
+            self.cookies = re.findall(r"Set-Cookie: (?P<value>.*?)\r\n", self.content)
         
             # Finally grab the rest of the variables
-            self.respVars = dict(re.findall(r"(?P<name>.*?): (?P<value>.*?)\r\n", self.respContent))
+            self.vars = dict(re.findall(r"(?P<name>.*?): (?P<value>.*?)\r\n", self.content))
         except Exception:
-            logging.getLogger("neolib.http").exception("Failed to parse HTTP headers: " + self.respContent)
+            logging.getLogger("neolib.http").exception("Failed to parse HTTP headers: " + self.content)
             raise Exception
             
             

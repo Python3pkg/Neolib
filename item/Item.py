@@ -1,5 +1,4 @@
 from neolib.http.Page import Page
-from neolib.RegexLib import RegexLib
 import logging
 
 class Item:
@@ -16,13 +15,17 @@ class Item:
     
     estPrice = None
     
+    location = None
+    price = None
+    stock = None
+    
     owner = None
     
     def __init__(self, itemName):
         # Set item name
         self.name = itemName
         
-    def populate(self, user = None, itemID = None):
+    def populate(self, usr = None, itemID = None):
         # Ensure an ID exists
         if not self.id and not itemID:
             return False
@@ -33,23 +36,31 @@ class Item:
         
         # The object's ID is used by default over any provided ID        
         if self.id: itemID = self.id
+            
+        # Same with the user
+        if self.owner: usr = self.owner
         
         # Fetch the item's information page
-        url = "http://www.neopets.com/iteminfo.phtml?obj_id=" + str(itemID)
-        pg = user.getPage(url)
+        pg = usr.getPage("http://www.neopets.com/iteminfo.phtml?obj_id=" + str(itemID), vars = {'Referer': 'http://www.neopets.com/objects.phtml?type=inventory'})
+        
+        # Ensure the ID is valid
+        if pg.content.find("not in your inventory") != -1:
+            logging.getLogger("neolib.item").exception("Invalid ID given, could not populate. ID: " + itemID)
+            return False
         
         # Pull the data
-        try:
-            data = RegexLib.getMat("item", "itemData", pg.pageContent)
-            
-            # Populate the attributes
-            self.type = data[0][0]
-            self.weight = data[0][1]
-            self.rarity = data[0][2]
-            self.estVal = data[0][3]
-        except Exception:
-            logging.getLogger("neolib.item").exception("Error parsing item information from source. Item ID: " + itemID + ". Page Source" + pg.pageContent)
-            return False
+        p = pg.getParser()
+        
+        self.img = p.table.img['src']
+        self.name = p.table.find_all("td")[1].text.split(" : ")[1].replace("Owner", "")
+        self.desc = p.find_all("div", align="center")[1].i.text
+        
+        stats = p.table.next_sibling.table.find_all("td")
+        
+        self.type = stats[1].text
+        self.weight = stats[3].text
+        self.rarity = stats[5].text
+        self.estVal = stats[7].text
         
         return True
     

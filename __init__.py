@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from RegexLib import RegexLib
 
 # Sets up to log to a file that looks as such: Neolib 2012-08-18 23-49-16.log.txt
 logFileName = datetime.today().strftime("Neolib %Y-%m-%d %H-%M-%S") + ".log.txt"
@@ -27,6 +26,3 @@ ch.setFormatter(format)
 # Add the console and file handler to the logger
 logger.addHandler(fh)
 logger.addHandler(ch)
-
-# Load our regex library for use by various modules
-RegexLib.loadReg()

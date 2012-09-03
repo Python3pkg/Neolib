@@ -1,61 +1,83 @@
-from neolib.RegexLib import RegexLib
+from neolib.exceptions import dailyAlreadyDone
+from neolib.exceptions import parseException
+from neolib.daily.Daily import Daily
 import logging
 
-class Tombola:
-	
-    win = False
+class Tombola(Daily):
     booby = False
-    alreadyPlayed = False
-	
+    
     ticket = ""
-    prize = ""
-	
-    def __init__(self):
-        pass
-		
-    def play(self, usr):
-        if not usr:
-            logging.getLogger("neolib.daily").info("Invalid user object supplied to Tombola")
-            return False
-			
-	    # Navigate to Tombola page
-        pg = usr.getPage("http://www.neopets.com/island/tombola.phtml")
+    
+    def play(self):
+	    # Visit daily page
+        pg = self.player.getPage("http://www.neopets.com/island/tombola.phtml")
 	    
-	    # Play
-        pg = usr.getPage("http://www.neopets.com/island/tombola2.phtml", {'submit': 'play'})
-		
+	    # Process daily
+        pg = self.player.getPage("http://www.neopets.com/island/tombola2.phtml", {'submit': 'play'})
+        
         f = open("test.html", "w")
-        f.write(pg.pageContent)
+        f.write(pg.content)
         f.close()
         
-        # Ensure user hasn't already played
-        if pg.pageContent.find("only allowed one") != -1:
-			self.alreadyPlayed = True
-			return True
+        # Ensure daily not previously completed
+        if pg.content.find("only allowed one") != -1:
+			raise dailyAlreadyDone()
         
         # Check if we got any prize at all
-        if pg.pageContent.find("don't even get a booby prize") != -1:
+        if pg.content.find("don't even get a booby prize") != -1:
 			return True
 		
-        # Parse the response
-        mats = RegexLib.getMat("daily", "tombola", pg.pageContent)
-        print mats
-	    
-	    # Ensure we have a proper response
-        if not mats:
-            logging.getLogger("neolib.daily").exception("Failed to parse tombola game message. HTTP Content was as follows: \n" + pg.pageContent + "\n\n\n")
-            return False
-		
-		
-		# Set the ticket number and prize
-        self.ticket = mats[0][0]
-        self.prize = mats[0][1]
-		
-		# If it was not a winning ticket, return now
-        if pg.pageContent.find("not a winning ticket") != -1:
+        # Check if we won. The content layout will be different if we won.
+        if pg.content.find("YOU ARE A WINNER"):
+            # Parse the response
+            try:
+                panel = pg.getParser().find("b", text="Tiki Tack Tombola").parent
+                
+                self.nps = panel.find_all("font")[1].text.split("Win ")[1]
+                
+                # First image is the ticket
+                imgs = panel.find_all("img")
+                imgs.pop(0)
+                
+                for img in imgs:
+                    self.prize += img['src'] + ", "
+            except Exception:
+                logging.getLogger("neolib.daily").exception("Could not parse Tombola daily. Source: \n" + pg.content + "\n\n\n")
+                raise parseException
+        else:
+            # Parse the response
+            try:
+                panel = pg.getParser().find("b", text="Tiki Tack Tombola").parent
+                
+                self.img = panel.img['src']
+                self.ticket = panel.img['src'].split("/")[-1].replace(".gif", "")
+                
+                parts = panel.find_all("b")
+                self.msg = parts[1].text + parts[2].text
+                self.prize = parts[3].text.replace("Your Prize - ", "")
+            except Exception:
+                logging.getLogger("neolib.daily").exception("Could not parse Tombola daily. Source: \n" + pg.content + "\n\n\n")
+                raise parseException
+            
+        # See if they were feeling sorry
+        if pg.content.find("feeling sorry for you") != -1:
+            self.nps = panel.find_all("p")[-1].b.text + " NPS"
+        
+		# If it was a booby, let them know
+        if pg.content.find("not a winning ticket") != -1:
             self.booby = True
-            return True
 			
-		# Otherwise set win to true and return
+		# Set win to true and return
         self.win = True
         return True
+
+    def getMessage(self):
+        if self.win:
+            ret = "You win " + self.prize + "!"
+            
+            if self.nps:
+                ret += " You also win " + self.nps + "!"
+                
+            return ret
+        else:
+            return "You did not win anything!"

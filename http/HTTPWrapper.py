@@ -3,18 +3,19 @@ from HTTPResponseHeader import HTTPResponseHeader
 from urlparse import urlparse
 from CookieJar import CookieJar
 from Cookie import Cookie
-from exceptions import HTTPException
+from neolib.exceptions import HTTPException
 import socket
 import zlib
 import logging
 
 class HTTPWrapper:
     sock = None
-    repHeader = None
-    repContent = ""
+    reqHeader = None
+    respHeader = None
+    respContent = ""
     cookieJar = None
     
-    timeout = 15.00
+    timeout = 45.00
     
     _logger = None
     
@@ -46,7 +47,7 @@ class HTTPWrapper:
             document = parsedUrl.path
         
         # Let's build a request header before connecting
-        rHeader = HTTPRequestHeader(type, parsedUrl.netloc, document, cookies, postData, vars)
+        self.reqHeader = HTTPRequestHeader(type, parsedUrl.netloc, document, cookies, postData, vars)
         
         # Now we can connect and send the request
         try:
@@ -57,7 +58,7 @@ class HTTPWrapper:
             raise HTTPException
             
         # Send the request
-        s.sendall(rHeader.headerContent)
+        s.sendall(self.reqHeader.headerContent)
         
         # Now begin buffering the response
         # 4096 is a mid-sized buffer and is divisible by 2, thus making it an ideal choice
@@ -71,7 +72,7 @@ class HTTPWrapper:
                 
                 data += buff
         except socket.timeout:
-            errMsg = "Connection timed-out while connecting to %s. Request headers were as follows: %s" % (parsedUrl.netloc, rHeader.headerContent)
+            errMsg = "Connection timed-out while connecting to %s. Request headers were as follows: %s" % (parsedUrl.netloc, self.reqHeader.headerContent)
             self._logger.exception(errMsg)
             raise HTTPException
             
@@ -83,27 +84,27 @@ class HTTPWrapper:
         
         # Parse the headers for future usage
         try:
-            self.repHeader = HTTPResponseHeader(header)
+            self.respHeader = HTTPResponseHeader(header)
         except Exception:
             self._logger.exception("Failed to parse HTTP Response Header. Header content: " + header)
             raise HTTPException
         
         # Update cookies
         if not self.cookieJar:
-            self.cookieJar = CookieJar(self.repHeader.cookies)
+            self.cookieJar = CookieJar(self.respHeader.cookies)
         else:
-            self.cookieJar.addCookies(self.repHeader.cookies)
+            self.cookieJar.addCookies(self.respHeader.cookies)
             
         # Check if the content is encoded
-        if "Content-Encoding" in self.repHeader.respVars:
+        if "Content-Encoding" in self.respHeader.vars:
             # If the content is gzip encoded, decode it
-            if self.repHeader.respVars['Content-Encoding'].find("gzip") != -1:
-                self.repContent = zlib.decompress(content, 16+zlib.MAX_WBITS)
+            if self.respHeader.vars['Content-Encoding'].find("gzip") != -1:
+                self.respContent = zlib.decompress(content, 16+zlib.MAX_WBITS)
         else:
-            self.repContent = content
+            self.respContent = content
             
         # Return the content       
-        return self.repContent
+        return self.respContent
         
     def downloadFile(self, type, url, localpath, cookies = None, postData = "", vars = None, binary = False):
         # Set any given cookies

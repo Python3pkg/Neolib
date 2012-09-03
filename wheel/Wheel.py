@@ -1,5 +1,5 @@
 from neolib.pyamf.remoting.client import RemotingService
-from neolib.RegexLib import RegexLib
+from neolib.bs4 import BeautifulSoup
 import logging
 
 class Wheel:
@@ -16,12 +16,12 @@ class Wheel:
     _validIDs = [1, 2, 3, 4, 5, 6]
     _names = {1: 'Wheel of Knowledge', 2: 'Wheel of Excitement', 3: 'Wheel of Mediocrity', 4: 'Wheel of Misfortune', 5: 'Wheel of Monotony', 6: 'Wheel of Extravagence'}
     
-    _refs = {1: "", \
+    _refs = {1: "http://images.neopets.com/wheels/wheel_of_knowledge_v2_731eafc8f8.swf?quality=high&scale=exactfit&menu=false&allowScriptAccess=always&swLiveConnect=True&wmode=opaque&host_url=www.neopets.com&lang=en", \
             2: "http://images.neopets.com/wheels/wheel_of_excitement_v3_831fbec8f8.swf?quality=high&scale=exactfit&menu=false&allowScriptAccess=always&swLiveConnect=True&wmode=opaque&host_url=www.neopets.com&lang=en", \
-            3: "", \
+            3: "http://images.neopets.com/wheels/wheel_of_mediocrity_v2_c4ed41eb31.swf?quality=high&scale=exactfit&menu=false&allowScriptAccess=always&swLiveConnect=True&wmode=opaque&host_url=www.neopets.com&lang=en", \
             4: "http://images.neopets.com/wheels/wheel_of_misfortune_v2_3075ced020.swf?quality=high&scale=exactfit&menu=false&allowScriptAccess=always&swLiveConnect=True&wmode=opaque&host_url=www.neopets.com&lang=en", \
-            5: "", \
-            6: ""}
+            5: "http://images.neopets.com/wheels/wheel_of_monotony_v2_380e3dbdad.swf?quality=high&scale=exactfit&menu=false&allowScriptAccess=always&swLiveConnect=True&wmode=opaque&host_url=www.neopets.com&lang=en", \
+            6: "http://images.neopets.com/wheels/wheel_of_extravagance_v1_5dd2d07006.swf?quality=high&scale=exactfit&menu=false&allowScriptAccess=always&swLiveConnect=True&wmode=opaque&host_url=www.neopets.com&lang=en"}
     
     def __init__(self, wheelID):
         self.id = wheelID
@@ -41,7 +41,7 @@ class Wheel:
         # Obtain the WheelService and spin the wheel
         service = client.getService('WheelService')
         resp = service.spinWheel(str(self.id))
-        print resp
+        
         # See if we have an error
         if "errmsg" in resp:
             if resp['errmsg'].find("already spun this wheel") != -1:
@@ -52,19 +52,12 @@ class Wheel:
                 return False
         
         # Parse the response
-        mats = RegexLib.getMat("wheel", "resp", resp['reply'])
-        print mats
+        p = BeautifulSoup(resp['reply']) 
         
-        # Ensure parse was successful
-        if not mats:
-            logging.getLogger("neolib.wheel").exception("Failed to parse response with content: " + resp['reply'])
-            return False
-            
-        
-        # Set the attributes and return        
-        self.message = mats[0][0]
-        self.img = mats[0][1]
-        self.prize = mats[0][2]
+        # Set the attributes and return
+        self.prize = p.img.text      
+        self.message = p.center.text.replace(self.prize, "")
+        self.img = p.img['src']
         
         return True
         
