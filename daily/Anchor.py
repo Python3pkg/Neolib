@@ -1,6 +1,6 @@
+from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
-from neolib.daily.Daily import Daily
 import logging
 
 class Anchor(Daily):
@@ -26,15 +26,18 @@ class Anchor(Daily):
                 self.prize = pg.getParser().find("span", "prize-item-name").text
                 self.img = pg.getParser().find("span", "prize-item-name").parent.parent.img['src']
                 
+                # Show that we won
                 self.win = True
             except Exception:
-                logging.getLogger("neolib.daily").exception("Failed to parse Anchor daily. Source: \n" + pg.content + "\n\n\n")
+                logging.getLogger("neolib.daily").exception("Failed to parse Anchor daily.")
+                logging.getLogger("neolib.html").info("Failed to parse Anchor daily.", {'pg': pg})
                 raise parseException
-                
-            return True
         else:
-            logging.getLogger("neolib.daily").info("Did not get a prize from Anchor. Source: \n" + pg.content + "\n\n\n")
-            return True
+            logging.getLogger("neolib.daily").info("Did not get a prize from Anchor.")
+            logging.getLogger("neolib.html").info("Did not get a prize from Anchor.", {'pg': pg})
             
     def getMessage(self):
-        return "You won a " + self.prize + "!"
+        if self.win:
+            return "You won a " + self.prize + "!"
+        else:
+            return "You did not win anything"

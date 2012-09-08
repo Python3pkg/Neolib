@@ -1,28 +1,32 @@
-from HTTPRequestHeader import HTTPRequestHeader
+from neolib.exceptions import HTTPException
 from HTTPResponseHeader import HTTPResponseHeader
-from urlparse import urlparse
+from HTTPRequestHeader import HTTPRequestHeader
 from CookieJar import CookieJar
 from Cookie import Cookie
-from neolib.exceptions import HTTPException
+from urlparse import urlparse
+import logging
 import socket
 import zlib
-import logging
 
 class HTTPWrapper:
+    # Instance of a socket
     sock = None
+    
+    # The associated HTTPRequestHeader
     reqHeader = None
+    
+    # The associated HTTPResponseHeader
     respHeader = None
+    
+    # The request content returned with HTTPWrapper.request()
     respContent = ""
+    
+    # The associated CookieJar
     cookieJar = None
     
+    
+    # The time to wait for a server response prior to timing out
     timeout = 45.00
-    
-    _logger = None
-    
-    def __init__(self):
-        # Setup a logger instance for debugging use
-        if not self._logger:
-            self._logger = logging.getLogger("neolib.http")
     
     def request(self, type, url, postData = None, vars = None):
         # Create a socket to use
@@ -53,12 +57,11 @@ class HTTPWrapper:
         try:
             s.connect((parsedUrl.netloc, 80))
         except Exception:
-            errMsg = "Failed to connect to host: %s on port 80" % parsedURL.netloc
-            self._logger.exception(errMsg)
+            logging.getLogger("neolib.http").exception("Failed to connect to host: %s on port 80" % parsedUrl.netloc)
             raise HTTPException
             
         # Send the request
-        s.sendall(self.reqHeader.headerContent)
+        s.sendall(self.reqHeader.content)
         
         # Now begin buffering the response
         # 4096 is a mid-sized buffer and is divisible by 2, thus making it an ideal choice
@@ -72,8 +75,7 @@ class HTTPWrapper:
                 
                 data += buff
         except socket.timeout:
-            errMsg = "Connection timed-out while connecting to %s. Request headers were as follows: %s" % (parsedUrl.netloc, self.reqHeader.headerContent)
-            self._logger.exception(errMsg)
+            logging.getLogger("neolib.http").exception("Connection timed-out while connecting to %s. Request headers were as follows: %s" % (parsedUrl.netloc, self.reqHeader.content))
             raise HTTPException
             
         # Don't forget to close your sockets!
@@ -86,7 +88,7 @@ class HTTPWrapper:
         try:
             self.respHeader = HTTPResponseHeader(header)
         except Exception:
-            self._logger.exception("Failed to parse HTTP Response Header. Header content: " + header)
+            logging.getLogger("neolib.http").exception("Failed to parse HTTP Response Header. Header content: " + header)
             raise HTTPException
         
         # Update cookies
@@ -125,7 +127,7 @@ class HTTPWrapper:
             f.write(fileData)
             f.close
         except Exception:
-            self._logger.exception("Failed to download file. File URL: " + url + ". Local path: " + localpath + "\nResponse Header:\n" + self.repHeader.respContent)
+            logging.getLogger("neolib.http").exception("Failed to download file. File URL: " + url + ". Local path: " + localpath + "\nResponse Header:\n" + self.repHeader.respContent)
             return False
             
         return True

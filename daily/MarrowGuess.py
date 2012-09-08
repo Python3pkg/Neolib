@@ -1,7 +1,7 @@
+from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
 from neolib.exceptions import marrowNotAvailable
-from neolib.daily.Daily import Daily
 import logging
 import random
 
@@ -16,10 +16,6 @@ class MarrowGuess(Daily):
         # Visit daily page
         pg = self.player.getPage("http://www.neopets.com/medieval/guessmarrow.phtml")
         
-        f = open("test.html", "w")
-        f.write(pg.content)
-        f.close()
-        
         # Ensure we can guess
         if pg.content.find("enter your value as an integer") == -1:
             raise marrowNotAvailable
@@ -29,11 +25,16 @@ class MarrowGuess(Daily):
         
         # Check if we got it right
         if pg.content.find("WRONG!") != -1:
-            return True
+            return
+            
+        # NOTE: This daily is still under development
+        # It is not currently known what a winning page looks like, thus it's logged until further development
+        logging.getLogger("neolib.html").info("Possible Marrow Guess winning page", {'pg': pg})
+        self.win = True
             
     def getMessage(self):
-        if this.win:
-            # Future
-            return "..."
+        if self.win:
+            # NOTE: This daily is still under development
+            return "You won. Please notify the application developer ASAP."
         else:
             return "You did not guess right!"

@@ -1,6 +1,6 @@
+from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
-from neolib.daily.Daily import Daily
 import logging
 
 class GiantOmelette(Daily):
@@ -19,17 +19,21 @@ class GiantOmelette(Daily):
         # Check if we grabbed any
         if pg.content.find("manage to take a slice") != -1:
             try:
-                # Set win to true and grab prize image
-                self.win = True
+                # Grab the prize img
                 self.img = pg.getParser().find("td", "content").img['src']
-            except Exception:
-                logging.getLogger("neolib.daily").exception("Could not parse Giant Omelette daily. Source: \n" + pg.content + "\n\n\n")
-                raise parseException
                 
-            return True
+                # Show that we won
+                self.win = True
+            except Exception:
+                logging.getLogger("neolib.daily").exception("Could not parse Giant Omelette daily.")
+                logging.getLogger("neolib.html").info("Could not parse Giant Omelette daily.", {'pg': pg})                
+                raise parseException
         else:
-            logging.getLogger("neolib.daily").info("Failed to grab omelette. Source: \n" + pg.content + " \n\n\n")
-            return True
+            logging.getLogger("neolib.daily").exception("Failed to grab Omelette.")
+            logging.getLogger("neolib.html").info("Failed to grab Omelette.", {'pg': pg}) 
             
     def getMessage(self):
-        return "You recieved " + self.img + "!"
+        if self.win:
+            return "You recieved " + self.img + "!"
+        else:
+            return "You did not win anything"

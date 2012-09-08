@@ -1,6 +1,7 @@
 from Cookie import Cookie
 
 class CookieJar:
+    # All stored cookies
     cookies = {}
     
     def __init__(self, strCookies):

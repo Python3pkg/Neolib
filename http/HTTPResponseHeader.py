@@ -3,12 +3,23 @@ import logging
 
 class HTTPResponseHeader:
     
+    # Raw HTTP Response Header content
     content = ""
+    
+    # HTTP Response Header variables in a dictionary format
     vars = {}
+    
+    # All raw cookie strings
     cookies = []
     
+    
+    # The HTTP version included with the response
     HTTPVer = ""
+    
+    # The HTTP status code
     statusCode = ""
+    
+    # The associated status code message
     statusMessage = ""
     
     

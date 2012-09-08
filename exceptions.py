@@ -5,6 +5,11 @@ class parseException(Exception):
 class invalidUser(Exception):
     pass
     
+class invalidType(Exception):
+    pass
+    
+class invalidMethod(Exception):
+    pass
     
     
 # HTTP
@@ -14,7 +19,7 @@ class HTTPException(Exception):
     
     
 # User
-class LogoutException(Exception):
+class logoutException(Exception):
     pass
 
 class notEnoughBalance(Exception):
@@ -48,4 +53,14 @@ class invalidSearch(Exception):
     pass
     
 class shopWizBanned(Exception):
+    time = ""
+    pass
+
+class invalidShop(Exception):
+    pass
+    
+class emptyShop(Exception):
+    pass
+    
+class activeQuest(Exception):
     pass

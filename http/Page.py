@@ -1,54 +1,84 @@
-from HTTPWrapper import HTTPWrapper
 from neolib.exceptions import HTTPException
-from neolib.bs4 import BeautifulSoup
+from HTTPWrapper import HTTPWrapper
+from bs4 import BeautifulSoup
 
 class Page:
+    # Instance of HTTPWrapper
     _wrapper = None
+    
+    # Instance of BeautifulSoup
     _parser = None
     
+    
+    # Associated CookieJar instance
     cookies = None
+    
+    # Associated HTTPRequestHeader instance
     reqHeader = None    
+    
+    # Associated HTTPResponseHeader instance 
     header = None
+    
+    # Content of the page
     content = ""
     
-    success = False
     
-    images = None
+    # URL page was intialized with
+    url = ""
+    
+    # CookieJar page was intialized with
+    intCookies = None
+    
+    # postData the page was initialized with
+    postData = None
+    
+    # HTTP Request variables page was initialized with
+    vars = None
+    
+    
+    # Whether the page loaded successfully
+    success = False
     
     def __init__(self, url, cookies = None, postData = None, vars = None):
         # Set own instance of HTTPWrapper
         if not self._wrapper:
             self._wrapper = HTTPWrapper()
             
-            # Set any cookies provided
-            if cookies:
-                self._wrapper.cookieJar = cookies
+        # Store parameters for reference purposes
+        self.url = url
+        self.intCookies = cookies
+        self.postData = postData
+        self.vars = vars
             
-            # Determine type of request based on whether or not post data was provided
-            if postData:
-                type = "POST"
-            else:
-                type = "GET"
+        # Set any cookies provided
+        if cookies:
+            self._wrapper.cookieJar = cookies
             
-            # Make the request
-            try:
-                self.content = self._wrapper.request(type, url, postData, vars)
-            except HTTPException:
-                self.success = False
-                self.content = None
-                return
+        # Determine type of request based on whether or not post data was provided
+        if postData:
+            type = "POST"
+        else:
+            type = "GET"
             
-            # Set the response header
-            self.header = self._wrapper.respHeader
-            
-            # Set the request header
-            self.reqHeader = self._wrapper.reqHeader
-            
-            # Set any updated cookies
-            self.cookies = self._wrapper.cookieJar
-            
-            # Set the parser
-            self._parser = BeautifulSoup(self.content)
+        # Make the request
+        try:
+            self.content = self._wrapper.request(type, url, postData, vars)
+        except HTTPException:
+            self.success = False
+            self.content = None
+            return
+        
+        # Set the response header
+        self.header = self._wrapper.respHeader
+        
+        # Set the request header
+        self.reqHeader = self._wrapper.reqHeader
+        
+        # Set any updated cookies
+        self.cookies = self._wrapper.cookieJar
+        
+        # Set the parser
+        self._parser = BeautifulSoup(self.content, "lxml")
     
     def getParser(self):
         return self._parser

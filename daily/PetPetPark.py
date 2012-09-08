@@ -1,6 +1,6 @@
+from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
-from neolib.daily.Daily import Daily
 import logging
 
 class PetPetPark(Daily):
@@ -16,17 +16,20 @@ class PetPetPark(Daily):
         if pg.content.find("already collected your prize") != -1:
             raise dailyAlreadyDone
         
+        # Debugging...
+        logging.getLogger("neolib.html").info("Debugging...", {'pg': pg})
+        
         try:
-            # Set win to true and parse prize
-            self.win = True
-            
+            # Parse the prize
             self.img =  pg.getParser().find("div", "ppx_daily_message").img['src']
             self.prize = pg.getParser().find("div", "ppx_daily_message").img.text
+            
+            # Show that we won
+            self.win = True
         except Exception:
-            logging.getLogger("neolib.daily").exception("Could not parse Pet Pet Park daily. Source: \n" + pg.content + "\n\n\n")
+            logging.getLogger("neolib.daily").exception("Could not parse Pet Pet Park daily.")
+            logging.getLogger("neolib.html").info("Could not parse Pet Pet Park daily.", {'pg': pg})
             raise parseException
-        
-        return True
         
     def getMessage(self):
         if self.win:

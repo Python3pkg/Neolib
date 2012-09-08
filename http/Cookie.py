@@ -1,16 +1,25 @@
-import re
 from datetime import datetime
 import logging
+import re
 
 class Cookie:
+    # Cookie name
     name = ""
+    
+    # Cookie value
     value = ""
+    
+    # Cookie expiration date
     expires = ""
+    
+    # Cookie path
     path = ""
+    
+    # Cookie's associated domain
     domain = ""
     
     def __init__(self, cookieStr):
-        # Temporary fix
+        # Small addition to simplify parsing
         cookieStr += "\r"
         
         try:

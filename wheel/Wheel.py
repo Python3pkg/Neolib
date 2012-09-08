@@ -4,18 +4,35 @@ import logging
 
 class Wheel:
     
+    # Wheel ID
     id = 0
+    
+    # Gateway to communicate with
     gateway = "http://www.neopets.com/amfphp/gateway.php"
     
+    
+    # Wheel message
     message = ""
+    
+    # Wheel prize image
     img = ""
+    
+    # Wheel prize name
     prize = ""
     
+    
+    # Whether or not the wheel has already been spun
     alreadySpun = False
     
+    
+    # List of all valid wheel IDs
     _validIDs = [1, 2, 3, 4, 5, 6]
+    
+    # Dictionary converting IDs to names
     _names = {1: 'Wheel of Knowledge', 2: 'Wheel of Excitement', 3: 'Wheel of Mediocrity', 4: 'Wheel of Misfortune', 5: 'Wheel of Monotony', 6: 'Wheel of Extravagence'}
     
+    
+    # Dictionary converting IDs to referrers
     _refs = {1: "http://images.neopets.com/wheels/wheel_of_knowledge_v2_731eafc8f8.swf?quality=high&scale=exactfit&menu=false&allowScriptAccess=always&swLiveConnect=True&wmode=opaque&host_url=www.neopets.com&lang=en", \
             2: "http://images.neopets.com/wheels/wheel_of_excitement_v3_831fbec8f8.swf?quality=high&scale=exactfit&menu=false&allowScriptAccess=always&swLiveConnect=True&wmode=opaque&host_url=www.neopets.com&lang=en", \
             3: "http://images.neopets.com/wheels/wheel_of_mediocrity_v2_c4ed41eb31.swf?quality=high&scale=exactfit&menu=false&allowScriptAccess=always&swLiveConnect=True&wmode=opaque&host_url=www.neopets.com&lang=en", \

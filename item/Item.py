@@ -1,24 +1,48 @@
-from neolib.http.Page import Page
+from neolib.exceptions import parseException
 import logging
 
 class Item:
     
+    # The User instance that owns the item
+    usr = None
+    
+    
+    # Item ID
     id = None
+    
+    # Item name
     name = None
+    
+    # Item image URL
     img = None
+    
+    # Item description
     desc = None
     
+    # Item price
+    price = None
+    
+    
+    # Item type
     type = None
+    
+    # Item weight
     weight = None
+    
+    # Item rarity level
     rarity = None
+    
+    # Item's estimated value
     estVal = None
     
-    estPrice = None
-    
+    # Item's location (URL)
     location = None
-    price = None
+    
+    # Item's stock
     stock = None
     
+    
+    # Item's owner (name)
     owner = None
     
     def __init__(self, itemName):
@@ -31,14 +55,14 @@ class Item:
             return False
             
         # Verify we have a user to use
-        if not self.owner and not user:
+        if not self.usr and not user:
             return False
         
         # The object's ID is used by default over any provided ID        
         if self.id: itemID = self.id
             
         # Same with the user
-        if self.owner: usr = self.owner
+        if self.usr: usr = self.usr
         
         # Fetch the item's information page
         pg = usr.getPage("http://www.neopets.com/iteminfo.phtml?obj_id=" + str(itemID), vars = {'Referer': 'http://www.neopets.com/objects.phtml?type=inventory'})
@@ -48,19 +72,25 @@ class Item:
             logging.getLogger("neolib.item").exception("Invalid ID given, could not populate. ID: " + itemID)
             return False
         
-        # Pull the data
-        p = pg.getParser()
-        
-        self.img = p.table.img['src']
-        self.name = p.table.find_all("td")[1].text.split(" : ")[1].replace("Owner", "")
-        self.desc = p.find_all("div", align="center")[1].i.text
-        
-        stats = p.table.next_sibling.table.find_all("td")
-        
-        self.type = stats[1].text
-        self.weight = stats[3].text
-        self.rarity = stats[5].text
-        self.estVal = stats[7].text
+        try:
+            # Pull the data
+            p = pg.getParser()
+            
+            # Set the item's attributes
+            self.img = p.table.img['src']
+            self.name = p.table.find_all("td")[1].text.split(" : ")[1].replace("Owner", "")
+            self.desc = p.find_all("div", align="center")[1].i.text
+            
+            stats = p.table.next_sibling.table.find_all("td")
+            
+            self.type = stats[1].text
+            self.weight = stats[3].text
+            self.rarity = stats[5].text
+            self.estVal = stats[7].text
+        except Exception:
+            logging.getLogger("neolib.item").exception("Failed to parse item details.")
+            logging.getLogger("neolib.html").info("Failed to parse item details.", {'pg': pg})
+            raise parseException
         
         return True
     
@@ -132,24 +162,6 @@ class Item:
             return True
         else:
             return False
-        
-    def give(self, user = None):
-        if not self.owner and not user:
-            return False
-            
-        if self.owner: user = self.owner
-            
-        # Future usage
-        temp = ""
-        
-    def auction(self, user = None):
-        if not self.owner and not user:
-            return False
-            
-        if self.owner: user = self.owner
-            
-        # Future usage
-        temp = ""
     
     def processAction(self, user, action):
         # Neopets expects a specific referrer when sending this post data

@@ -1,6 +1,6 @@
+from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
-from neolib.daily.Daily import Daily
 import logging
 
 class ColtzanShrine(Daily):
@@ -16,13 +16,9 @@ class ColtzanShrine(Daily):
         if pg.content.find("wait a while before visiting") != -1:
             raise dailyAlreadyDone
         
-        f = open("test.html", "w")
-        f.write(pg.content)
-        f.close()
-        
         # See if we won anything
         if pg.content.find("http://images.neopets.com/desert/shrine_win.gif") == -1:
-            return True
+            return
         
         try:
             # Get the message
@@ -34,12 +30,12 @@ class ColtzanShrine(Daily):
                 self.img = block[1].img['src']
                 self.prize = block[1].img.text
                 
+            # Show that we won
             self.win = True
         except Exception:
             logging.getLogger("neolib.daily").exception("Could not parse Coltzan Shrine daily. Source: \n" + pg.content + "\n\n\n")
+            logging.getLogger("neolib.html").info("Could not parse Coltzan Shrine daily.", {'pg': pg})
             raise parseException
-            
-        return True
         
     def getMessage(self):
         if self.win:

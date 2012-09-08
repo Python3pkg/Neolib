@@ -1,6 +1,6 @@
+from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
-from neolib.daily.Daily import Daily
 import logging
 
 class ShopOfOffers(Daily):
@@ -12,16 +12,17 @@ class ShopOfOffers(Daily):
         # Check if we got something
         if pg.content.find("Something has happened!") != -1:
             try:
-                # Set win to true and parse nps
-                self.win = True
+                # Parse nps
                 self.nps = pg.getParser().find("td", text = "Something has happened!").find_next("td", width="320").strong.text
+                
+                # Show that we won
+                self.win = True
             except Exception:
-                logging.getLogger("neolib.daily").exception("Could not parse Pet Pet Park daily. Source: \n" + pg.content + "\n\n\n")
+                logging.getLogger("neolib.daily").exception("Could not parse Pet Pet Park daily.")
+                logging.getLogger("neolib.html").exception("Could not parse Pet Pet Park daily.", {'pg': pg}) 
                 raise parseException
         else:
             raise dailyAlreadyDone
-            
-        return True
         
     def getMessage(self):
         if self.win:

@@ -1,6 +1,6 @@
+from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
-from neolib.daily.Daily import Daily
 import logging
 
 class FruitMachine(Daily):
@@ -20,13 +20,9 @@ class FruitMachine(Daily):
         # Process daily
         pg = self.player.getPage("http://www.neopets.com/desert/fruit/index.phtml", {'spin': spin, 'ck': ck})
         
-        f = open("test.html", "w")
-        f.write(pg.content)
-        f.close()
-        
         # Check if we won
         if pg.content.find("this is not a winning spin") != -1:
-            return True
+            return
             
         try:
             # Set win to true and parse NPs won
@@ -39,10 +35,9 @@ class FruitMachine(Daily):
                 self.prize = pg.getParser().find("td", "prizeCell").img.b.text
                 self.img = pg.getParser().find("td", "prizeCell").img['src']
         except Exception:
-            logging.getLogger("neolib.daily").exception("Could not parse Fruit Machine daily. Source: \n" + pg.content + "\n\n\n")
+            logging.getLogger("neolib.daily").exception("Could not parse Fruit Machine daily.")
+            logging.getLogger("neolib.html").info("Could not parse Fruit Machine daily.", {'pg': pg})
             raise parseException
-            
-        return True
                 
     def getMessage(self):
         if self.win:

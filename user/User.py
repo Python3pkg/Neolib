@@ -1,8 +1,11 @@
-from neolib.http.Page import Page
-from neolib.user.Pet import Pet
+from neolib.exceptions import logoutException
 from neolib.inventory.UserInventory import UserInventory
+from neolib.shop.UserShop import UserShop
+from neolib.config.Config import Config
+from neolib.http.Page import Page
 from neolib.user.Bank import Bank
-from neolib.exceptions import LogoutException
+from neolib.user.hooks import *
+from neolib.user.Pet import Pet
 import logging
 
 class User:
@@ -19,11 +22,17 @@ class User:
     # User's bank
     bank = None
     
+    # User's shop
+    shop = None
+    
     # User's current amount of neopoints
     nps = 0
     
     # User's active pet
     activePet = None
+    
+    # The user's configuration data
+    config = None
     
     # Defines whether or not to automatically append a referer using the user's last visited page
     useRef = True
@@ -36,6 +45,9 @@ class User:
     
     # The user's state of being logged in
     loggedIn = False
+    
+    # Set's whether or not this user will load and execute hooks
+    useHooks = True
     
     def __init__(self, username, password):
         # Set the username and password
@@ -56,22 +68,6 @@ class User:
         pg = self.getPage("http://www.neopets.com/index.phtml")
         
         if pg.content.find(self.username.lower()) != -1:
-            # Grab current NPs
-            self.nps = int( pg.getParser().find("a", id = "npanchor").text.replace(",", "") )
-            
-            # Grab active pet information
-            panel = pg.getParser().find("table", "sidebarTable")
-            self.activePet = Pet(panel.tr.td.text)
-            
-            stats = panel.find("table").find_all("td", align="left")
-            
-            self.activePet.species = stats[0].text
-            self.activePet.health = stats[1].text
-            self.activePet.mood = stats[2].text
-            self.activePet.hunger = stats[3].text
-            self.activePet.age = stats[4].text
-            self.activePet.level = stats[5].text
-            
             # Set the user as logged in
             self.loggedIn = True
             
@@ -86,6 +82,23 @@ class User:
     def loadBank(self):
         # Loads the user's basic bank information and allows for actions like withdrawl, deposit, etc.
         self.bank = Bank(self)
+        
+    def loadShop(self):
+        # Load the user's shop
+        self.shop = UserShop(self)
+        self.shop.loadInventory()
+    
+    def loadConfig(self):
+        
+        # Attempt to load user configuration file
+        self.config = Config(self.username)
+        
+        # If it doesn't exist, create a new one with default settings
+        if not self.config.data:
+            data = {'useHooks': 'True', 'autoLogin': 'True'}
+            
+            Config.createUserConfig(self.username, data)
+            self.config = Config(self.username)
     
     def updateNps(self, pg = None):
         # If no page is supplied, just load the index
@@ -99,7 +112,7 @@ class User:
         # If using a referer is desired and one has not already been supplied, then set the referer to the user's last visited page
         if self.useRef and len(self.lastPage) > 0:
             if not vars: vars = {'Referer': self.lastPage}
-            elif not vars['Referer']: vars['Referer'] = self.lastPage
+            elif not "Referer" in vars: vars['Referer'] = self.lastPage
             
         # Update the user's last visited page
         self.lastPage = url
@@ -110,30 +123,10 @@ class User:
         # Update user cookies
         self.cookieJar = pg.cookies
         
-        # Check if the user was logged out
-        if "Location" in pg.header.vars:
-            if pg.header.vars['Location'].find("loginpage.phtml") != -1:
-                # If auto login is enabled, try to log back in, otherwise raise an exception to let higher processes know the user is logged out.
-                if self.autoLogin:
-                    # Clear cookies
-                    self.cookieJar = None
-                    
-                    if self.login():
-                        # Update status
-                        self.loggedIn = True
-                        
-                        # Request the page again now that the user is logged in
-                        pg = Page(url, self.cookieJar, postData, vars)
-                    else:
-                        # Failed to login. Update status, log it, and raise an exception
-                        self.loggedIn = False
-                        logging.getLogger("neolib.user").info("User was logged out. Failed to log back in.")
-                        raise LogoutException
-                else:
-                    # Auto login is not enabled. Update status and raise an exception.
-                    self.loggedIn = False
-                    logging.getLogger("neolib.user").info("User was logged out. Auto login is disabled.")
-                    raise LogoutException
+        # Check if we are using hooks, and execute them if so
+        if self.useHooks:
+            for hook in UserHook.__subclasses__():
+                self, pg = hook.processHook(self, pg)
                     
         # Return the page
         return pg        
