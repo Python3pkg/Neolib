@@ -44,7 +44,7 @@ class UserInventory(Inventory):
                     tmpItem.usr = usr
                     
                     # Add the item to the items dictionary
-                    self.items[name.lower()] = tmpItem
+                    self.items[name] = tmpItem
         except Exception:
             logging.getLogger("neolib.inventory").exception("Unable to parse user inventory.")
             logging.getLogger("neolib.html").info("Unable to parse user inventory.", {'pg': pg})

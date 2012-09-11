@@ -1,4 +1,5 @@
 from neolib.exceptions import HTTPException
+from neolib.exceptions import invalidProxy
 from HTTPResponseHeader import HTTPResponseHeader
 from HTTPRequestHeader import HTTPRequestHeader
 from CookieJar import CookieJar
@@ -28,7 +29,7 @@ class HTTPWrapper:
     # The time to wait for a server response prior to timing out
     timeout = 45.00
     
-    def request(self, type, url, postData = None, vars = None):
+    def request(self, type, url, postData = None, vars = None, proxy = None):
         # Create a socket to use
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
@@ -50,12 +51,19 @@ class HTTPWrapper:
         else:
             document = parsedUrl.path
         
+        proxyURL = ""
+        if proxy:
+            proxyURL = url
+        
         # Let's build a request header before connecting
-        self.reqHeader = HTTPRequestHeader(type, parsedUrl.netloc, document, cookies, postData, vars)
+        self.reqHeader = HTTPRequestHeader(type, parsedUrl.netloc, document, cookies, postData, vars, proxyURL)
         
         # Now we can connect and send the request
         try:
-            s.connect((parsedUrl.netloc, 80))
+            if proxy:
+                s.connect(proxy)
+            else:
+                s.connect((parsedUrl.netloc, 80))
         except Exception:
             logging.getLogger("neolib.http").exception("Failed to connect to host: %s on port 80" % parsedUrl.netloc)
             raise HTTPException

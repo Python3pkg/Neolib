@@ -60,9 +60,7 @@ class logBackIn(UserHook):
                 if usr.autoLogin:
                     # Clear cookies
                     usr.cookieJar = None
-                    print "HERE 1"
                     if usr.login():
-                        print "HERE 2"
                         # Update status
                         usr.loggedIn = True
                             

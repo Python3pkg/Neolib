@@ -17,7 +17,7 @@ class HTTPRequestHeader:
     GET = "GET"
     POST = "POST"
     
-    def __init__(self, type, host, document, cookies = "", postData = None, vars = None):
+    def __init__(self, type, host, document, cookies = "", postData = None, vars = None, proxyURL = None):
         
         # Verify a proper type was specified
         if not (type == self.GET or type == self.POST):
@@ -34,7 +34,7 @@ class HTTPRequestHeader:
             self.vars = loadedVars["Firefox"]
         else:
             # Ensure the setting actually exists
-            if Config.getGlobal()['HTTPHeaderVer'] in loadedvars:
+            if Config.getGlobal()['HTTPHeaderVer'] in loadedVars:
                 self.vars = loadedVars[Config.getGlobal()['HTTPHeaderVer']]
             else:
                 # Otherwise just set it to default Firefox
@@ -43,7 +43,11 @@ class HTTPRequestHeader:
         # Import any user appended variables
         if vars:
             self.vars.update(vars)
-                    
+        
+        # Setup the proxy
+        if proxyURL:
+            document = proxyURL
+        
         # Construct the HTTP Request Header
         self.content = """\
             %s %s HTTP/%s

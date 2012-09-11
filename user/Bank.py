@@ -58,7 +58,7 @@ class Bank:
             raise parseException
         
         # See if interest has or has not been collected
-        if pg.content.find("not be able to collect") == -1:
+        if pg.content.find("not be able to collect") == -1 and pg.content.find("have already collected") == -1:
             try:
                 self.dailyInterest = pg.getParser().find_all("td", "contentModuleHeaderAlt")[2].parent.parent.input['value'].split("(")[1].replace(" NP)", "")
                 self.collectedInterest = False
@@ -103,11 +103,11 @@ class Bank:
             logging.getLogger("neolib.html").info("Could not parse user's bank balance.", {'pg': pg})
         
         # Ensure we're not withdrawing more than we have
-        if int(amount) > int(self.balance):
+        if int(amount) > int(self.balance.replace(",", "")):
             raise notEnoughBalance
             
         # Withdraw the amount
-        pg = self.owner.getPage("http://www.neopets.com/process_bank.phtml", {'type': 'withdraw', 'amount': str(amount)})
+        pg = self.owner.getPage("http://www.neopets.com/process_bank.phtml", {'type': 'withdraw', 'amount': str(amount)}, usePin = True)
         
         # Ensure there were no errors
         if pg.header.vars['Location'].find("bank.phtml") != -1:

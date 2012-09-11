@@ -4,7 +4,6 @@ from neolib.exceptions import parseException
 from neolib.exceptions import shopWizBanned
 from neolib.exceptions import activeQuest
 from neolib.exceptions import invalidMethod
-from neolib.item.Item import Item
 import logging
 import time
 

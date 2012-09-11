@@ -15,7 +15,9 @@ class invalidMethod(Exception):
 # HTTP
 class HTTPException(Exception):
     pass
-    
+
+class invalidProxy(Exception):
+    pass
     
     
 # User
@@ -38,6 +40,9 @@ class snowagerAwake(Exception):
     pass
     
 class marrowNotAvailable(Exception):
+    pass
+
+class invalidDaily(Exception):
     pass
     
     

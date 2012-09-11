@@ -1,4 +1,5 @@
 from neolib.exceptions import parseException
+from neolib.shop.ShopWizard import ShopWizard
 import logging
 
 class Item:
@@ -41,6 +42,12 @@ class Item:
     # Item's stock
     stock = None
     
+    
+    # The item's page number in an inventory
+    pg = None
+    
+    # Defines how much stock to remove from item in inventory
+    remove = 0
     
     # Item's owner (name)
     owner = None
@@ -94,13 +101,25 @@ class Item:
         
         return True
     
+    def getPrice(self, searches, method = "AVERAGE", deduct = 0):
+        # Pass the parameters off to the ShopWziard.priceItem() method to obtain a price
+        price = ShopWizard.priceItem(self.usr, self.name, searches, method, deduct)
+        
+        # If False was returned, most likely an UB item, so it should not be given a price greater than 0
+        if not price:
+            self.price = 0
+            return False
+        else:
+            self.price = price
+            return self.price
+    
     def putSDB(self, user = None):
         # Verify we have a user to use
-        if not self.owner and not user:
+        if not self.usr and not user:
             return False
         
         # The object's user is used by default over any given user        
-        if self.owner: user = self.owner
+        if self.usr: user = self.usr
         
         # Process the request
         html = self.processAction(user, "safetydeposit")
@@ -112,10 +131,10 @@ class Item:
             return False
         
     def donate(self, user = None):
-        if not self.owner and not user:
+        if not self.usr and not user:
             return False
             
-        if self.owner: user = self.owner
+        if self.usr: user = self.usr
         
         html = self.processAction(user, "donate")
         
@@ -125,10 +144,10 @@ class Item:
             return False
         
     def discard(self, user = None):
-        if not self.owner and not user:
+        if not self.usr and not user:
             return False
             
-        if self.owner: user = self.owner
+        if self.usr: user = self.usr
             
         html = self.processAction(user, "drop")
         
@@ -138,10 +157,10 @@ class Item:
             return False
         
     def stock(self, user = None):
-        if not self.owner and not user:
+        if not self.usr and not user:
             return False
             
-        if self.owner: user = self.owner
+        if self.usr: user = self.usr
         
         html = self.processAction(user, "stockshop")
         
@@ -151,10 +170,10 @@ class Item:
             return False
         
     def putGallery(self, user = None):
-        if not self.owner and not user:
+        if not self.usr and not user:
             return False
             
-        if self.owner: user = self.owner
+        if self.usr: user = self.usr
             
         html = self.processAction(user, "stockgallery")
         
@@ -163,9 +182,13 @@ class Item:
         else:
             return False
     
+    def removeItem(self, stock):
+        # Setting to True will cause the next UserShop.updateShop() call to remove the item
+        self.remove = stock
+    
     def processAction(self, user, action):
         # Neopets expects a specific referrer when sending this post data
         ref = "http://www.neopets.com/iteminfo.phtml?obj_id=" + str(self.id)
         pg = user.getPage("http://www.neopets.com/useobject.phtml", {'obj_id': str(self.id), 'action': action}, {"Referer": ref})
-        return pg.pageContent
+        return pg.content
         

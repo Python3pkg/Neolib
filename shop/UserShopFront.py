@@ -21,11 +21,16 @@ class UserShopFront:
     # Shop welcome message
     welcomeMsg = ""
     
+    # The object ID of the item searched for
+    objID = ""
+    
+    # The price of the item searched for
+    price = ""
     
     # Shop inventory
     inventory = None
     
-    def __init__(self, usr, owner):
+    def __init__(self, usr, owner, objID = "", price = ""):
         # Ensure we have a valid user
         if not usr:
             raise invalidUser
@@ -34,9 +39,13 @@ class UserShopFront:
         self.usr = usr
         self.owner = owner
         
+        # Set optionals
+        self.objID = objID
+        self.price = price
+        
     def loadInventory(self):
         # Create a new instance of UserShopInventory, which loads the inventory on initialization
-        self.inventory = UserShopInventory(self.usr, "FRONT", self.owner)
+        self.inventory = UserShopInventory(self.usr, "FRONT", self.owner, self.objID, self.price)
         
     def populate(self):
         # Load the shop page

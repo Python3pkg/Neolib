@@ -8,6 +8,30 @@ class UserShop:
     # User who owns the shop
     usr = None
     
+    # Name of the shop
+    name = None
+    
+    # Size of the shop
+    size = None
+    
+    # Shop keeper's name
+    keeperName = None
+    
+    # Shop keeper's message
+    keeperMessage = None
+    
+    # Shop keeper's image
+    keeperImg = None
+    
+    # Shop stock
+    stock = None
+    
+    # Max number of items allowed in the shop
+    max = None
+    
+    # The sales history
+    history = None
+    
     # Instance of UserShopInventory
     inventory = None
     
@@ -18,8 +42,10 @@ class UserShop:
             
         # Set the user    
         self.usr = usr
+        
+        # Populate shop details
+        self.populate()
             
-    
     @property
     def till(self):
         # Navigate to the till page
@@ -42,7 +68,7 @@ class UserShop:
         pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=till")
         
         # Grab the till
-        pg = self.usr.getPage("http://www.neopets.com/process_market.phtml", {'type': 'withdraw', 'amount': str(nps)})
+        pg = self.usr.getPage("http://www.neopets.com/process_market.phtml", {'type': 'withdraw', 'amount': str(nps)}, usePin = True)
         
         # Ensure it was successful
         if "Location" in pg.header.vars:
@@ -60,7 +86,57 @@ class UserShop:
     def loadInventory(self):
         # Create a new instance of UserShopInventory, which loads the inventory on initialization
         self.inventory = UserShopInventory(self.usr, "BACK")
+    
+    def populate(self):
+        # Grab the shop page
+        pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=your")
         
+        # Parse details
+        try:
+            self.name = pg.getParser().find_all(text = "Shop Till")[1].parent.parent.parent.previous_sibling.previous_sibling.text
+            self.size = pg.getParser().find_all(text = "Shop Till")[1].parent.parent.parent.previous_sibling.split("(size ")[1].replace(")", "")
+            
+            panel = pg.getParser().find("img", {"name": "keeperimage"}).parent
+            
+            self.keeperName = panel.b.text.split(" says ")[0]
+            self.keeperMessage = panel.b.text.split(" says ")[1]
+            self.keeperImg = panel.img['src']
+            self.stock = panel.find_all("b")[1].text
+            self.max = panel.find_all("b")[2].text
+        except Exception:
+            logging.getLogger("neolib.shop").exception("Could not parse shop details.")
+            logging.getLogger("neolib.html").info("Could not parse shop details.", {'pg': pg})
+            raise parseException
+            
+    def loadSalesHistory(self):
+        # Get page
+        pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=sales")\
+        
+        try:
+            # Parse the sales history
+            rows = pg.getParser().find("b", text = "Date").parent.parent.parent.find_all("tr")
+            rows.pop(0)
+            rows.pop(-1)
+            
+            self.history = []
+            for row in rows:
+                parts = row.find_all("td")
+                dets = {}
+                
+                dets['date'] = parts[0].text
+                dets['item'] = parts[1].text
+                dets['buyer'] = parts[2].text
+                dets['price'] = parts[3].text
+                
+                self.history.append(dets)
+                
+            # Reverse the list to put it in order by date
+            self.history.reverse()
+        except Exception:
+            logging.getLogger("neolib.shop").exception("Could not parse sales history.")
+            logging.getLogger("neolib.html").info("Could not parse sales history.", {'pg': pg})
+            raise parseException
+            
     def updateShop(self):
         # Build the initial post data
         postData = {'type': 'update_prices', 'order_by': 'id', 'view': ''}
@@ -74,8 +150,8 @@ class UserShop:
                 
                 # Update the page
                 ref = "http://www.neopets.com/market.phtml?type=your&lim=" + str(x * 30)
-                pg = self.usr.getPage("http://www.neopets.com/process_market.phtml", postData, {'Referer': ref})
-                logging.getLogger("neolib.html").info("This is it", {'pg': pg})
+                pg = self.usr.getPage("http://www.neopets.com/process_market.phtml", postData, {'Referer': ref}, True)
+                
                 # Ensure it was successful
                 if "Location" in pg.header.vars:
                     if pg.header.vars['Location'].find("market.phtml") != -1:

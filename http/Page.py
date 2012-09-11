@@ -39,7 +39,7 @@ class Page:
     # Whether the page loaded successfully
     success = False
     
-    def __init__(self, url, cookies = None, postData = None, vars = None):
+    def __init__(self, url, cookies = None, postData = None, vars = None, proxy = None):
         # Set own instance of HTTPWrapper
         if not self._wrapper:
             self._wrapper = HTTPWrapper()
@@ -62,7 +62,7 @@ class Page:
             
         # Make the request
         try:
-            self.content = self._wrapper.request(type, url, postData, vars)
+            self.content = self._wrapper.request(type, url, postData, vars, proxy)
         except HTTPException:
             self.success = False
             self.content = None

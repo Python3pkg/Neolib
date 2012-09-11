@@ -6,6 +6,7 @@ from neolib.http.Page import Page
 from neolib.user.Bank import Bank
 from neolib.user.hooks import *
 from neolib.user.Pet import Pet
+from neolib.user.SDB import SDB
 import logging
 
 class User:
@@ -25,11 +26,17 @@ class User:
     # User's shop
     shop = None
     
+    # User's Safety Deposit Box
+    SDB = None
+    
     # User's current amount of neopoints
     nps = 0
     
     # User's active pet
     activePet = None
+    
+    # User's optional PIN number
+    pin = None
     
     # The user's configuration data
     config = None
@@ -40,6 +47,9 @@ class User:
     # The user's last visisted page
     lastPage = ""
     
+    # User's optional proxy
+    proxy = None
+    
     # Set's whether the class will attempt to automatically log back in when it detects a log out, or just raise an exception
     autoLogin = True
     
@@ -49,10 +59,11 @@ class User:
     # Set's whether or not this user will load and execute hooks
     useHooks = True
     
-    def __init__(self, username, password):
-        # Set the username and password
+    def __init__(self, username, password, pin = None):
+        # Set the username, password, and pin
         self.username = username
         self.password = password
+        self.pin = pin
         
     def login(self):
         # Construct the post data
@@ -87,6 +98,11 @@ class User:
         # Load the user's shop
         self.shop = UserShop(self)
         self.shop.loadInventory()
+        
+    def loadSDB(self):
+        # Load the user's Safety Deposit Box
+        self.SDB = SDB(self)
+        self.SDB.loadInventory()
     
     def loadConfig(self):
         
@@ -107,7 +123,10 @@ class User:
             
         self.nps = int( pg.getParser().find("a", id = "npanchor").text.replace(",", "") )
     
-    def getPage(self, url, postData = None, vars = None):
+    def setProxy(self, host, port):
+        self.proxy = (host, port)
+    
+    def getPage(self, url, postData = None, vars = None, usePin = False):
         
         # If using a referer is desired and one has not already been supplied, then set the referer to the user's last visited page
         if self.useRef and len(self.lastPage) > 0:
@@ -117,8 +136,13 @@ class User:
         # Update the user's last visited page
         self.lastPage = url
         
+        # Check if we need to include a pin
+        if usePin:
+            if self.pin:
+                postData['pin'] = str(self.pin)
+        
         # Grab the page
-        pg = Page(url, self.cookieJar, postData, vars)
+        pg = Page(url, self.cookieJar, postData, vars, self.proxy)
         
         # Update user cookies
         self.cookieJar = pg.cookies
