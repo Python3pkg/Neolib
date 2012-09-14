@@ -16,9 +16,6 @@ class PetPetPark(Daily):
         if pg.content.find("already collected your prize") != -1:
             raise dailyAlreadyDone
         
-        # Debugging...
-        logging.getLogger("neolib.html").info("Debugging...", {'pg': pg})
-        
         try:
             # Parse the prize
             self.img =  pg.getParser().find("div", "ppx_daily_message").img['src']

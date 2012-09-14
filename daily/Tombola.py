@@ -40,7 +40,7 @@ class Tombola(Daily):
                 
                 # The rest of the images are prizes, so parse them
                 for img in imgs:
-                    self.prize += img['src'] + ", "
+                    self.prize += img['src'].split("/")[-1].split(".")[0] + ", "
             except Exception:
                 logging.getLogger("neolib.daily").exception("Could not parse Tombola daily.")
                 logging.getLogger("neolib.html").info("Could not parse Tombola daily.", {'pg': pg})

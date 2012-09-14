@@ -2,16 +2,9 @@ import json
 import logging
 
 class Config:
-    # Name of configuration
     name = ""
-    
-    # Configuration data
     data = None
-    
-    # Global configuration data
     glob = None
-    
-    # Configuration path
     configPath = None
     
     def __init__(self, name):
@@ -38,6 +31,8 @@ class Config:
         f = open(Config.configPath + username + ".config.json", "w")
         f.write(json.dumps(data, sort_keys = True, indent = 4))
         f.close()
+        
+        return Config(username)
         
     # Loads global config
     @staticmethod

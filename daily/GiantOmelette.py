@@ -16,6 +16,10 @@ class GiantOmelette(Daily):
         if pg.content.find("NO!") != -1:
             raise dailyAlreadyDone
         
+        # Check if the omelette was there
+        if pg.content.find("there doesn't seem to be any left") != -1:
+            return
+        
         # Check if we grabbed any
         if pg.content.find("manage to take a slice") != -1:
             try:
@@ -34,6 +38,6 @@ class GiantOmelette(Daily):
             
     def getMessage(self):
         if self.win:
-            return "You recieved " + self.img + "!"
+            return "You got some Omelette!"
         else:
             return "You did not win anything"
