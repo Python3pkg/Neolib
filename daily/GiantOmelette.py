@@ -24,7 +24,7 @@ class GiantOmelette(Daily):
         if pg.content.find("manage to take a slice") != -1:
             try:
                 # Grab the prize img
-                self.img = pg.getParser().find("td", "content").img['src']
+                self.img = pg.find("td", "content").img['src']
                 
                 # Show that we won
                 self.win = True

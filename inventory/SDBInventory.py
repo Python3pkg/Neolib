@@ -25,7 +25,7 @@ class SDBInventory(Inventory):
         # Check if multiple pages exist
         if pg.content.find("<option value='30'>") != -1:
             # Figure out how many pages
-            pages = pg.getParser().find_all("select")[1].find_all("option")
+            pages = pg.find_all("select")[1].find_all("option")
             
             # Knock off the first page
             pages.pop(0)
@@ -63,7 +63,7 @@ class SDBInventory(Inventory):
                 
     def _loadItems(self, usr, pg, pgno):
         # Parse all item rows
-        rows = pg.getParser().find("form", action = "process_safetydeposit.phtml?checksub=scan").find_all("tr")
+        rows = pg.find("form", action = "process_safetydeposit.phtml?checksub=scan").find_all("tr")
         rows.pop(-1)
         
         # Loop through all items

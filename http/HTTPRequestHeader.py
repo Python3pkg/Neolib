@@ -8,18 +8,13 @@ import json
 import os
 
 class HTTPRequestHeader:
-    # All request header variables in a dictionary format
     vars = {}
-    
-    # The raw request header content
     content = ""
     
     GET = "GET"
     POST = "POST"
     
     def __init__(self, type, host, document, cookies = "", postData = None, vars = None, proxyURL = None):
-        
-        # Verify a proper type was specified
         if not (type == self.GET or type == self.POST):
             logging.getLogger("neolib.http").info("Invalid request header type given: " + type)
             raise Exception
@@ -28,7 +23,6 @@ class HTTPRequestHeader:
         path = os.path.dirname(os.path.abspath(HTTPResponseHeader.__file__)) + "/HTTPHeaders.json"
         loadedVars = json.loads( open( path).read() )
         
-        # Check if a global config option is set
         if not Config.getGlobal():
             # Set Firefox as the default
             self.vars = loadedVars["Firefox"]
@@ -37,18 +31,17 @@ class HTTPRequestHeader:
             if Config.getGlobal()['HTTPHeaderVer'] in loadedVars:
                 self.vars = loadedVars[Config.getGlobal()['HTTPHeaderVer']]
             else:
-                # Otherwise just set it to default Firefox
+                # Set Firefox as the default
                 self.vars = loadedVars["Firefox"]
         
-        # Import any user appended variables
+        # Updates default loaded variables with any user added variables
         if vars:
             self.vars.update(vars)
         
-        # Setup the proxy
+        # The full URL must be provided when connecting via a proxy
         if proxyURL:
             document = proxyURL
         
-        # Construct the HTTP Request Header
         self.content = """\
             %s %s HTTP/%s
             Host: %s
@@ -59,34 +52,27 @@ class HTTPRequestHeader:
             Connection: %s""" % \
             (type, document, self.vars['HTTPVER'], host, self.vars['USER-AGENT'], self.vars['ACCEPT'], self.vars['ACCEPT-LANGUAGE'], self.vars['ACCEPT-ENCODING'], self.vars['CONNECTION'])
         
-        # Remove the indentations I made above
+        # Remove above indentations
         self.content = dedent(self.content)
         
-        # If cookies exist, add them
         if cookies:
             self.content += "\nCookie: " + cookies
         
-        # If referer exists, add it
         if "Referer" in self.vars:
             self.content += "\nReferer: " + self.vars['Referer']
         
-        # If it was a POST request, build the post data and append headers
         strData = ""
         if type == self.POST:
-            # Ensure the data is encoded to prevent any issues
+            # Ensure the data is URL encoded to ensure proper transmission
             # This method will also convert the dictionary into it's proper string format
             strData = urllib.urlencode(postData)
             
             self.content += "\nContent-Type: application/x-www-form-urlencoded"
             self.content += "\nContent-Length: " + str(len(strData))
         
-        # Add the new lines at the end
+        # Two return lines are expected at the end of each HTTP Request
         self.content += "\r\n\r\n"
         
-        # If it was a POST, append the data
         if type == self.POST:
             self.content += strData
-            
-        # All done!
-        
         

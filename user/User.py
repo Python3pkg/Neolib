@@ -80,7 +80,7 @@ class User:
         if not pg:
             pg = self.getPage("http://www.neopets.com/index.phtml")
             
-        self.nps = int( pg.getParser().find("a", id = "npanchor").text.replace(",", "") )
+        self.nps = int( pg.find("a", id = "npanchor").text.replace(",", "") )
     
     def setProxy(self, host, port):
         self.proxy = (host, port)
@@ -99,7 +99,7 @@ class User:
                 # All forms that require a pin share the same variable name of 'pin'
                 postData['pin'] = str(self.pin)
         
-        pg = Page(url, self.cookieJar, postData, vars, self.proxy)s
+        pg = Page(url, self.cookieJar, postData, vars, self.proxy)
         self.cookieJar = pg.cookies
         
         if self.useHooks:

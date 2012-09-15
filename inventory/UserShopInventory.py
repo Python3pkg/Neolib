@@ -64,7 +64,7 @@ class UserShopInventory(Inventory):
         try:
             # If we were searching for an item, and it's not been bought, parse it first
             if objID and pg.content.find("Item not found!") == -1:
-                panel = pg.getParser().find(text = " (owned by ").parent
+                panel = pg.find(text = " (owned by ").parent
                 item = panel.find_all("tr")[0].find_all("td")[0]
                 
                 # This inventory type stores items in a UserShopFrontItem instance
@@ -83,9 +83,9 @@ class UserShopInventory(Inventory):
                 self.items[item.b.text] = tmpItem
                     
                 # Set the next panel to the correct value
-                panel = pg.getParser().find(text = " (owned by ").parent.find_all("table")[1]
+                panel = pg.find(text = " (owned by ").parent.find_all("table")[1]
             else:
-                panel = pg.getParser().find(text = " (owned by ").parent.table
+                panel = pg.find(text = " (owned by ").parent.table
                 
             # Loop through all rows of items            
             for row in panel.find_all("tr"):
@@ -118,7 +118,7 @@ class UserShopInventory(Inventory):
         # Check if multiple pages exist
         if pg.content.find("[1-30]") != -1:
             # Figure out how many pages
-            pages = pg.getParser().find("a", text = "[1-30]").parent.find_all("a")
+            pages = pg.find("a", text = "[1-30]").parent.find_all("a")
             
             # The first link is a "Sort by ID" link, the second one is the first page
             pages.pop(0)
@@ -149,10 +149,12 @@ class UserShopInventory(Inventory):
                     logging.getLogger("neolib.html").info("Unable to parse user shop back inventory.", {'pg': pg})
                     raise parseException
                 i += 1
+        else:
+            self.pages = 1
                 
     def _loadBackItems(self, usr, pg, pgno):
         # Find the items form
-        form = pg.getParser().find(action = "process_market.phtml")
+        form = pg.find(action = "process_market.phtml")
         
         # Find all item rows, popping the first and last rows which contain unecessary amplifying information
         rows = form.find_all("tr")

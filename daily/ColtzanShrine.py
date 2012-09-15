@@ -22,10 +22,10 @@ class ColtzanShrine(Daily):
         
         try:
             # Get the message
-            self.msg = pg.getParser().find("p", text = "Coltzan's Shrine").find_next_sibling("div").text
+            self.msg = pg.find("p", text = "Coltzan's Shrine").find_next_sibling("div").text
             
             # See if there was an item
-            block = pg.getParser().find("p", text = "Coltzan's Shrine").find_next_sibling("div").find_all("p")
+            block = pg.find("p", text = "Coltzan's Shrine").find_next_sibling("div").find_all("p")
             if len(block) >= 2:
                 self.img = block[1].img['src']
                 self.prize = block[1].img.text

@@ -46,7 +46,7 @@ class Bank:
             
         # Parse bank details
         try:
-            results = pg.getParser().find(text = "Account Type:").parent.parent.parent.find_all("td", align="center")
+            results = pg.find(text = "Account Type:").parent.parent.parent.find_all("td", align="center")
         
             self.type = results[0].text
             self.balance = results[1].text.replace(" NP", "")
@@ -60,7 +60,7 @@ class Bank:
         # See if interest has or has not been collected
         if pg.content.find("not be able to collect") == -1 and pg.content.find("have already collected") == -1:
             try:
-                self.dailyInterest = pg.getParser().find_all("td", "contentModuleHeaderAlt")[2].parent.parent.input['value'].split("(")[1].replace(" NP)", "")
+                self.dailyInterest = pg.find_all("td", "contentModuleHeaderAlt")[2].parent.parent.input['value'].split("(")[1].replace(" NP)", "")
                 self.collectedInterest = False
             except Exception:
                 logging.getLogger("neolib.user").exception("Could not parse user's bank daily interest.")
@@ -96,7 +96,7 @@ class Bank:
         
         # Update current balance
         try:
-            results = pg.getParser().find(text = "Account Type:").parent.parent.parent.find_all("td", align="center")
+            results = pg.find(text = "Account Type:").parent.parent.parent.find_all("td", align="center")
             self.balance = results[1].text.replace(" NP", "")
         except Exception:
             logging.getLogger("neolib.user").exception("Could not parse user's bank balance.")
@@ -146,7 +146,7 @@ class Bank:
         
         # Update current balance
         try:
-            results = pg.getParser().find(text = "Account Type:").parent.parent.parent.find_all("td", align="center")
+            results = pg.find(text = "Account Type:").parent.parent.parent.find_all("td", align="center")
             self.balance = results[1].text.replace(" NP", "")
         except Exception:
             logging.getLogger("neolib.user").exception("Could not parse user's bank balance.")

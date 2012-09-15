@@ -3,19 +3,10 @@ import logging
 import re
 
 class Cookie:
-    # Cookie name
     name = ""
-    
-    # Cookie value
     value = ""
-    
-    # Cookie expiration date
     expires = ""
-    
-    # Cookie path
     path = ""
-    
-    # Cookie's associated domain
     domain = ""
     
     def __init__(self, cookieStr):
@@ -23,10 +14,8 @@ class Cookie:
         cookieStr += "\r"
         
         try:
-            # Parse out the necessary information from the cookie string
             mat = re.match("(.*)=(.*); expires=(.*); path=(.*); domain=(.*?)\r", cookieStr)
-        
-            # Update the cookie data
+            
             self.name = mat.group(1)
             self.value = mat.group(2)
             self.expires = mat.group(3)
@@ -43,5 +32,4 @@ class Cookie:
             return True
     
     def toStr(self):
-        # Return's the cookie's string value, which is a simple name=value format
         return self.name + "=" + self.value + ";"

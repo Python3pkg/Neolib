@@ -10,55 +10,43 @@ import socket
 import zlib
 
 class HTTPWrapper:
-    # Instance of a socket
     sock = None
     
-    # The associated HTTPRequestHeader
     reqHeader = None
-    
-    # The associated HTTPResponseHeader
     respHeader = None
-    
-    # The request content returned with HTTPWrapper.request()
     respContent = ""
-    
-    # The associated CookieJar
     cookieJar = None
     
-    
-    # The time to wait for a server response prior to timing out
     timeout = 45.00
     
-    def request(self, type, url, postData = None, vars = None, proxy = None):
-        # Create a socket to use
+    def request(self, type, url, postData=None, vars=None, proxy=None):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
-        # Set a 15 second timeout so operations won't hang
         s.settimeout(self.timeout)
         
-        # Parse the URL to determine what exactly we're doing
         parsedUrl = urlparse(url)
             
-        # Grab any cookies
+        # Convert any cookies to string form
+        cookies = ""
         if self.cookieJar:
             cookies = self.cookieJar.getCookies()
-        else:
-            cookies = ""
         
         # Add a query if it exists
+        document = parsedUrl.path
         if parsedUrl.query:
-            document = parsedUrl.path + "?" + parsedUrl.query
-        else:
-            document = parsedUrl.path
+            document += "?" + parsedUrl.query
         
+        # Necessary to send the entire URL to HTTPRequestHeader as 
+        # it's required by the proxy host.
         proxyURL = ""
         if proxy:
             proxyURL = url
         
-        # Let's build a request header before connecting
-        self.reqHeader = HTTPRequestHeader(type, parsedUrl.netloc, document, cookies, postData, vars, proxyURL)
+        # Builds a HTTP Request Header
+        try:
+            self.reqHeader = HTTPRequestHeader(type, parsedUrl.netloc, document, cookies, postData, vars, proxyURL)
+        except Exception:
+            raise HTTPException("Could not build HTTP Request Header")
         
-        # Now we can connect and send the request
         try:
             if proxy:
                 s.connect(proxy)
@@ -66,13 +54,12 @@ class HTTPWrapper:
                 s.connect((parsedUrl.netloc, 80))
         except Exception:
             logging.getLogger("neolib.http").exception("Failed to connect to host: %s on port 80" % parsedUrl.netloc)
-            raise HTTPException
+            raise HTTPException("Could not connect to host")
             
-        # Send the request
         s.sendall(self.reqHeader.content)
         
-        # Now begin buffering the response
-        # 4096 is a mid-sized buffer and is divisible by 2, thus making it an ideal choice
+        # Buffer the response
+        # 4096 is a mid-sized buffer and is divisible by 2, thus making it an ideal choice.
         try:
             data = ""
             while True:
@@ -84,54 +71,50 @@ class HTTPWrapper:
                 data += buff
         except socket.timeout:
             logging.getLogger("neolib.http").exception("Connection timed-out while connecting to %s. Request headers were as follows: %s" % (parsedUrl.netloc, self.reqHeader.content))
-            raise HTTPException
+            raise HTTPException("Connection timed out")
             
-        # Don't forget to close your sockets!
         s.close()
         
         # Split the response header and content
         header, content = data.split("\r\n\r\n")
         
-        # Parse the headers for future usage
+        # Parse HTTP Response Header
         try:
             self.respHeader = HTTPResponseHeader(header)
         except Exception:
             logging.getLogger("neolib.http").exception("Failed to parse HTTP Response Header. Header content: " + header)
-            raise HTTPException
+            raise HTTPException("Invalid HTTP Response Header")
         
-        # Update cookies
+        # Update cookies to reflect this request
         if not self.cookieJar:
             self.cookieJar = CookieJar(self.respHeader.cookies)
         else:
             self.cookieJar.addCookies(self.respHeader.cookies)
             
-        # Check if the content is encoded
         if "Content-Encoding" in self.respHeader.vars:
-            # If the content is gzip encoded, decode it
             if self.respHeader.vars['Content-Encoding'].find("gzip") != -1:
-                self.respContent = zlib.decompress(content, 16+zlib.MAX_WBITS)
+                try:
+                    self.respContent = zlib.decompress(content, 16+zlib.MAX_WBITS)
+                except Exception:
+                    raise HTTPException("Invalid or malformed gzip data")
         else:
             self.respContent = content
-            
-        # Return the content       
+                   
         return self.respContent
         
-    def downloadFile(self, type, url, localpath, cookies = None, postData = "", vars = None, binary = False):
-        # Set any given cookies
+    def downloadFile(self, type, url, localpath, cookies=None, postData = "", vars=None, proxy=None, binary=False):
         if cookies:
             self.cookieJar = cookies
             
         try:
-            # Download the file
-            fileData = self.request(type, url, postData, vars)
+            # Request the remote file
+            fileData = self.request(type, url, postData, vars, proxy)
         
-            # Determine which method to write with
             if binary:
                 f = open(localpath, "wb")
             else:
                 f = open(localpath, "w")
-            
-            # Write and close the file
+                
             f.write(fileData)
             f.close
         except Exception:

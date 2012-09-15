@@ -53,7 +53,7 @@ class UserShop:
         
         # Parse and return the till
         try:
-            return pg.getParser().find_all(text = "Shop Till")[1].parent.next_sibling.b.text.replace(" NP", "").replace(",", "")
+            return pg.find_all(text = "Shop Till")[1].parent.next_sibling.b.text.replace(" NP", "").replace(",", "")
         except Exception:
             logging.getLogger("neolib.shop").exception("Could not grab shop till.")
             logging.getLogger("neolib.html").info("Could not grab shop till.", {'pg': pg})
@@ -93,10 +93,10 @@ class UserShop:
         
         # Parse details
         try:
-            self.name = pg.getParser().find_all(text = "Shop Till")[1].parent.parent.parent.previous_sibling.previous_sibling.text
-            self.size = pg.getParser().find_all(text = "Shop Till")[1].parent.parent.parent.previous_sibling.split("(size ")[1].replace(")", "")
+            self.name = pg.find_all(text = "Shop Till")[1].parent.parent.parent.previous_sibling.previous_sibling.text
+            self.size = pg.find_all(text = "Shop Till")[1].parent.parent.parent.previous_sibling.split("(size ")[1].replace(")", "")
             
-            panel = pg.getParser().find("img", {"name": "keeperimage"}).parent
+            panel = pg.find("img", {"name": "keeperimage"}).parent
             
             self.keeperName = panel.b.text.split(" says ")[0]
             self.keeperMessage = panel.b.text.split(" says ")[1]
@@ -114,7 +114,7 @@ class UserShop:
         
         try:
             # Parse the sales history
-            rows = pg.getParser().find("b", text = "Date").parent.parent.parent.find_all("tr")
+            rows = pg.find("b", text = "Date").parent.parent.parent.find_all("tr")
             rows.pop(0)
             rows.pop(-1)
             
@@ -186,6 +186,9 @@ class UserShop:
         for item in self._itemsOnPage(pg):
             
             if item.price != item.oldPrice:
+                return True
+                
+            if item.remove > 0:
                 return True
         
         return False

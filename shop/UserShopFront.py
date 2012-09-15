@@ -62,7 +62,7 @@ class UserShopFront:
             
         # Parse out shop details
         try:
-            panel = pg.getParser().find(text = " (owned by ").parent
+            panel = pg.find(text = " (owned by ").parent
             
             self.name = panel.b.text
             self.desc = panel.p.text

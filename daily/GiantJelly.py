@@ -18,7 +18,7 @@ class GiantJelly(Daily):
         
         # Parse prize
         try:
-            parts = pg.getParser().find_all("p")
+            parts = pg.find_all("p")
         
             self.img = parts[2].img['src']
             self.prize = parts[3].b.text

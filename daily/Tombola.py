@@ -29,7 +29,7 @@ class Tombola(Daily):
         if pg.content.find("YOU ARE A WINNER")!= -1:
             # Parse the response
             try:
-                panel = pg.getParser().find("b", text="Tiki Tack Tombola").parent
+                panel = pg.find("b", text="Tiki Tack Tombola").parent
                 
                 # Grab the nps won
                 self.nps = panel.find_all("font")[1].text.split("Win ")[1]
@@ -48,7 +48,7 @@ class Tombola(Daily):
         else:
             # Parse the response
             try:
-                panel = pg.getParser().find("b", text="Tiki Tack Tombola").parent
+                panel = pg.find("b", text="Tiki Tack Tombola").parent
                 
                 # Grab the item image and ticket number
                 self.img = panel.img['src']

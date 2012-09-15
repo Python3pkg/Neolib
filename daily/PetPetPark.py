@@ -18,8 +18,8 @@ class PetPetPark(Daily):
         
         try:
             # Parse the prize
-            self.img =  pg.getParser().find("div", "ppx_daily_message").img['src']
-            self.prize = pg.getParser().find("div", "ppx_daily_message").a.text
+            self.img =  pg.find("div", "ppx_daily_message").img['src']
+            self.prize = pg.find("div", "ppx_daily_message").a.text
             
             # Show that we won
             self.win = True

@@ -25,7 +25,7 @@ class UserInventory(Inventory):
         
         try:
             # Loop through all rows of items
-            for row in pg.getParser().find_all("td", "contentModuleContent")[1].table.find_all("tr"):
+            for row in pg.find_all("td", "contentModuleContent")[1].table.find_all("tr"):
                 # Loop through all items in a row
                 for item in row.find_all("td"):
                     name = item.text

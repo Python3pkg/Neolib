@@ -14,8 +14,8 @@ class FruitMachine(Daily):
             raise dailyAlreadyDone
         
         # Parse form values
-        spin = pg.getParser().find("div", "result").form.find_all("input")[0]['value']
-        ck = pg.getParser().find("div", "result").form.find_all("input")[1]['value']
+        spin = pg.find("div", "result").form.find_all("input")[0]['value']
+        ck = pg.find("div", "result").form.find_all("input")[1]['value']
         
         # Process daily
         pg = self.player.getPage("http://www.neopets.com/desert/fruit/index.phtml", {'spin': spin, 'ck': ck})
@@ -27,13 +27,13 @@ class FruitMachine(Daily):
         try:
             # Set win to true and parse NPs won
             self.win = True
-            self.nps = pg.getParser().find("div", id="fruitResult").span.b.text
+            self.nps = pg.find("div", id="fruitResult").span.b.text
             
             # Check if we have an additional prize
             if pg.content.find("You also win") != -1:
                 # Parse the prize item name and image
-                self.prize = pg.getParser().find("td", "prizeCell").img.b.text
-                self.img = pg.getParser().find("td", "prizeCell").img['src']
+                self.prize = pg.find("td", "prizeCell").img.b.text
+                self.img = pg.find("td", "prizeCell").img['src']
         except Exception:
             logging.getLogger("neolib.daily").exception("Could not parse Fruit Machine daily.")
             logging.getLogger("neolib.html").info("Could not parse Fruit Machine daily.", {'pg': pg})

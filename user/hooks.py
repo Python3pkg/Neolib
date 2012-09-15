@@ -15,7 +15,7 @@ class updateNPs(UserHook):
         if pg.content.find("npanchor") != -1:
             try:
                 # Parse and set Nps
-                usr.nps = int( pg.getParser().find("a", id = "npanchor").text.replace(",", "") )
+                usr.nps = int( pg.find("a", id = "npanchor").text.replace(",", "") )
             except Exception:
                 return [usr, pg]
                 
@@ -30,7 +30,7 @@ class updateActivePet(UserHook):
         if pg.content.find("sidebarTable") != -1:
             try:
                 # Parse the active pet details
-                panel = pg.getParser().find("table", "sidebarTable")
+                panel = pg.find("table", "sidebarTable")
                 
                 usr.activePet = Pet(panel.tr.td.text)
                 

@@ -13,7 +13,7 @@ class ShopOfOffers(Daily):
         if pg.content.find("Something has happened!") != -1:
             try:
                 # Parse nps
-                self.nps = pg.getParser().find("td", text = "Something has happened!").find_next("td", width="320").strong.text
+                self.nps = pg.find("td", text = "Something has happened!").find_next("td", width="320").strong.text
                 
                 # Show that we won
                 self.win = True

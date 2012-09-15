@@ -81,7 +81,7 @@ class Item:
         
         try:
             # Pull the data
-            p = pg.getParser()
+            p = pg
             
             # Set the item's attributes
             self.img = p.table.img['src']

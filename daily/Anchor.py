@@ -14,7 +14,7 @@ class Anchor(Daily):
             raise dailyAlreadyDone
         
         # Parse form value
-        action = pg.getParser().find("form", id = "form-fire-cannon").input['value']
+        action = pg.find("form", id = "form-fire-cannon").input['value']
         
         # Process daily
         pg = self.player.getPage("http://www.neopets.com/pirates/anchormanagement.phtml", {'action': action})
@@ -23,8 +23,8 @@ class Anchor(Daily):
         if pg.content.find("left you a memento"):
             try:
                 # Parse the prize
-                self.prize = pg.getParser().find("span", "prize-item-name").text
-                self.img = pg.getParser().find("span", "prize-item-name").parent.parent.img['src']
+                self.prize = pg.find("span", "prize-item-name").text
+                self.img = pg.find("span", "prize-item-name").parent.parent.img['src']
                 
                 # Show that we won
                 self.win = True

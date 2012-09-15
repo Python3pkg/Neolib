@@ -64,7 +64,7 @@ class ShopWizard:
         
         # Check if we're shop wiz banned
         if pg.content.find("Whoa there") != -1:
-            time = pg.getParser().find("b", text = "Whoa there, too many searches!").parent.p.b.text
+            time = pg.find("b", text = "Whoa there, too many searches!").parent.p.b.text
             e = shopWizBanned()
             e.time = time
             raise e
@@ -89,7 +89,7 @@ class ShopWizard:
         
         try:
             # Parse the results
-            items = pg.getParser().find("td", "contentModuleHeaderAlt").parent.parent.find_all("tr")
+            items = pg.find("td", "contentModuleHeaderAlt").parent.parent.find_all("tr")
             items.pop(0)
             
             results = []
