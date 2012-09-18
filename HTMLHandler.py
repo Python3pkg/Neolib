@@ -19,7 +19,7 @@ class HTMLHandler(logging.Handler):
         
         # Write the file
         f = open(fileName, "w")
-        f.write(ret)
+        f.write(ret.encode("ascii", "ignore"))
         f.close()
         
         

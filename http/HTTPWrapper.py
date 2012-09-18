@@ -1,3 +1,10 @@
+""":mod:`HTTPWrapper` -- Contains the HTTPWrapper class
+
+.. module:: HTTPWrapper
+   :synopsis: Contains the HTTPWrapper class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.exceptions import HTTPException
 from neolib.exceptions import invalidProxy
 from HTTPResponseHeader import HTTPResponseHeader
@@ -10,6 +17,28 @@ import socket
 import zlib
 
 class HTTPWrapper:
+    
+    """Wraps the HTTP protocol and provides a interface for HTTP communications
+    
+    This class wraps the HTTP protocol, providing an interface to automatically
+    generate proper HTTP Request Headers, connect to a host and send the headers,
+    and receieve and properly handle an HTTP Response Header. The class also
+    provides options for using cookies, POST data, and proxies.
+    
+    Attributes
+       sock (socket) -- Instance of socket.socket for TCP communication
+       reqHeader (HTTPRequestHeader) -- Represents the HTTP Request Header
+       respHeader (HTTPResponseHeader) -- Represents the HTTP Response Header
+       respContent (str) -- The HTTP response content
+       cookieJar (CookieJar) -- Updated cookies sent/received in the request
+       timeout (int) -- Timeout in seconds before terminating connection attempt
+        
+    Example
+       >>> w = HTTPWrapper()
+       >>> w.request("GET", "http://www.neopets.com/index.phtml")
+       <!DOCTYPE HTML PUBLIC> .....
+    """
+    
     sock = None
     
     reqHeader = None
@@ -20,12 +49,31 @@ class HTTPWrapper:
     timeout = 45.00
     
     def request(self, type, url, postData=None, vars=None, proxy=None):
+        """ Requests a remote document, returns document contents
+        
+        Generates an HTTP Requst Header using parameters, connects to the
+        remote host, sends the request, reads the response, and parses
+        and returns the response content
+        
+        Parameters
+           type (str) -- Type of request, 'POST' or 'GET'
+           url (str) -- Remote URL address
+           postData (dict) -- POST data {name: 'value'} sent with HTTP Request
+           vars (dict) -- HTTP Request variables {name: 'value'} sent with HTTP Request
+           proxy (tuple) -- Proxy host and port to connect with
+           
+        Returns
+           str - The remote document content
+           
+        Raises
+           HTTPException
+        """
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(self.timeout)
         
         parsedUrl = urlparse(url)
             
-        # Convert any cookies to string form
+        # Converts cookies to string form
         cookies = ""
         if self.cookieJar:
             cookies = self.cookieJar.getCookies()
@@ -103,6 +151,28 @@ class HTTPWrapper:
         return self.respContent
         
     def downloadFile(self, type, url, localpath, cookies=None, postData = "", vars=None, proxy=None, binary=False):
+        """ Requests a remote document and saves it to a local file. Returns success.
+        
+        Requests a remote document via HTTPWrapper.request() and saves its contents
+        to a local file.
+        
+        Parameters
+           type (str) -- Type of request, 'POST' or 'GET'
+           url (str) -- Remote URL address
+           localpath (str) -- Local path to save file
+           cookies (CookieJar) -- Cookies to be sent with request
+           postData (dict) -- POST data {name: 'value'} sent with HTTP Request
+           vars (dict) -- HTTP Request variables {name: 'value'} sent with HTTP Request
+           proxy (tuple) -- Proxy host and port to connect with
+           binary (bool) -- Passing True writes the file in binary mode
+           
+        Returns
+           bool - True if successful, False otherwise
+           
+        Raises
+           HTTPException
+        """
+           
         if cookies:
             self.cookieJar = cookies
             

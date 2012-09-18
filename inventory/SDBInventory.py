@@ -7,46 +7,36 @@ import logging
 
 class SDBInventory(Inventory):
     
-    # The number of pages the BACK inventory has
     pages = 0
     
     def __init__(self, usr):
-        # Ensure we have a valid user
         if not usr:
             raise invalidUser
             
-        # Load the page
         pg = usr.getPage("http://www.neopets.com/safetydeposit.phtml")
-            
-        # Initialize items dictionary
         self.items = {}
         
         pages = None
         # Check if multiple pages exist
         if pg.content.find("<option value='30'>") != -1:
-            # Figure out how many pages
             pages = pg.find_all("select")[1].find_all("option")
             
             # Knock off the first page
             pages.pop(0)
             
-        # Load the first page
         try:
-            self._loadItems(usr, pg, 1)
+            self._loadInventory(usr, pg, 1)
         except Exception:
             logging.getLogger("neolib.inventory").exception("Unable to parse SDB inventory.")
             logging.getLogger("neolib.html").info("Unable to parse SDB inventory.", {'pg': pg})
             raise parseException
             
-        # Load any additional pages
         if pages:
-            # Have to account for the first page
-            self.pages = len(pages) + 1
+            self.pages = len(pages) + 1 # Account for first page
             
-            # Ensure to start from the second page, since the first was already accounted for
+            # Start from the second page
             i = 2
             for page in pages:
-                # Load the page
                 pg = usr.getPage("http://www.neopets.com/safetydeposit.phtml?offset=" + page['value'])
                 
                 # Ensure there's items on the page
@@ -54,19 +44,17 @@ class SDBInventory(Inventory):
                     continue
                 
                 try:
-                    self._loadItems(usr, pg, i)
+                    self._loadInventory(usr, pg, i)
                 except Exception:
                     logging.getLogger("neolib.inventory").exception("Unable to parse SDB inventory.")
                     logging.getLogger("neolib.html").info("Unable to parse SDB inventory.", {'pg': pg})
                     raise parseException
                 i += 1
                 
-    def _loadItems(self, usr, pg, pgno):
-        # Parse all item rows
+    def _loadInventory(self, usr, pg, pgno):
         rows = pg.find("form", action = "process_safetydeposit.phtml?checksub=scan").find_all("tr")
-        rows.pop(-1)
+        rows.pop(-1) # Last row contains no item
         
-        # Loop through all items
         for item in rows:
             stats = item.find_all("td")
             

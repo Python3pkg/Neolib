@@ -11,6 +11,9 @@ class invalidType(Exception):
 class invalidMethod(Exception):
     pass
     
+class neopetsOfflineException(Exception):
+    pass
+    
     
 # HTTP
 class HTTPException(Exception):
@@ -69,3 +72,15 @@ class emptyShop(Exception):
     
 class activeQuest(Exception):
     pass
+    
+# Quest
+class questTooExpensive(Exception):
+    pass
+    
+class UBItemException(Exception):
+    pass
+    
+class questLimitException(Exception):
+    pass
+    
+    

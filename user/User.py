@@ -1,4 +1,5 @@
 from neolib.exceptions import logoutException
+from neolib.exceptions import neopetsOfflineException
 from neolib.inventory.UserInventory import UserInventory
 from neolib.shop.UserShop import UserShop
 from neolib.config.Config import Config
@@ -101,6 +102,9 @@ class User:
         
         pg = Page(url, self.cookieJar, postData, vars, self.proxy)
         self.cookieJar = pg.cookies
+        
+        if pg.content.find("http://images.neopets.com/homepage/indexbak_oops_en.png") != -1:
+            raise neopetsOfflineException
         
         if self.useHooks:
             for hook in UserHook.__subclasses__():

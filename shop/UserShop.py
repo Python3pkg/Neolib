@@ -1,57 +1,36 @@
 from neolib.exceptions import invalidUser
 from neolib.exceptions import parseException
-from neolib.inventory.UserShopInventory import UserShopInventory
+from neolib.inventory.UserShopBackInventory import UserShopBackInventory
 import logging
 
 class UserShop:
     
-    # User who owns the shop
     usr = None
-    
-    # Name of the shop
     name = None
-    
-    # Size of the shop
     size = None
     
-    # Shop keeper's name
     keeperName = None
-    
-    # Shop keeper's message
     keeperMessage = None
-    
-    # Shop keeper's image
     keeperImg = None
     
-    # Shop stock
     stock = None
-    
-    # Max number of items allowed in the shop
     max = None
     
-    # The sales history
     history = None
     
-    # Instance of UserShopInventory
     inventory = None
     
     def __init__(self, usr):
-        # Ensure we have a valid user
         if not usr:
             raise invalidUser
             
-        # Set the user    
         self.usr = usr
-        
-        # Populate shop details
         self.populate()
             
     @property
     def till(self):
-        # Navigate to the till page
         pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=till")
         
-        # Parse and return the till
         try:
             return pg.find_all(text = "Shop Till")[1].parent.next_sibling.b.text.replace(" NP", "").replace(",", "")
         except Exception:
@@ -60,17 +39,13 @@ class UserShop:
             raise parseException
             
     def grabTill(self, nps):
-        # Ensure a non-zero value
         if not int(nps):
             return False
             
-        # Navigate to till page
         pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=till")
-        
-        # Grab the till
         pg = self.usr.getPage("http://www.neopets.com/process_market.phtml", {'type': 'withdraw', 'amount': str(nps)}, usePin = True)
         
-        # Ensure it was successful
+        # If successful redirects to till page
         if "Location" in pg.header.vars:
             if pg.header.vars['Location'].find("market.phtml?type=till") != -1:
                 return True
@@ -84,14 +59,11 @@ class UserShop:
             return False
     
     def loadInventory(self):
-        # Create a new instance of UserShopInventory, which loads the inventory on initialization
-        self.inventory = UserShopInventory(self.usr, "BACK")
+        self.inventory = UserShopBackInventory(self.usr)
     
     def populate(self):
-        # Grab the shop page
         pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=your")
         
-        # Parse details
         try:
             self.name = pg.find_all(text = "Shop Till")[1].parent.parent.parent.previous_sibling.previous_sibling.text
             self.size = pg.find_all(text = "Shop Till")[1].parent.parent.parent.previous_sibling.split("(size ")[1].replace(")", "")
@@ -109,12 +81,12 @@ class UserShop:
             raise parseException
             
     def loadSalesHistory(self):
-        # Get page
         pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=sales")\
         
         try:
-            # Parse the sales history
             rows = pg.find("b", text = "Date").parent.parent.parent.find_all("tr")
+            
+            # First and last row do not contain entries
             rows.pop(0)
             rows.pop(-1)
             
@@ -138,21 +110,16 @@ class UserShop:
             raise parseException
             
     def updateShop(self):
-        # Build the initial post data
         postData = {'type': 'update_prices', 'order_by': 'id', 'view': ''}
         
-        # Need to deal with each page individually
         for x in range(1, self.inventory.pages + 1):
-            # Check if an any item on this page has changed
             if self._hasPageChanged(x):
-                # Add additional post data
                 postData.update(self._constructPagePostData(x))
                 
-                # Update the page
                 ref = "http://www.neopets.com/market.phtml?type=your&lim=" + str(x * 30)
                 pg = self.usr.getPage("http://www.neopets.com/process_market.phtml", postData, {'Referer': ref}, True)
                 
-                # Ensure it was successful
+                # If successful redirects to shop
                 if "Location" in pg.header.vars:
                     if pg.header.vars['Location'].find("market.phtml") != -1:
                         return True
@@ -167,10 +134,7 @@ class UserShop:
             
     def _itemsOnPage(self, pg):
         ret = []
-        # Loop through all items, match against the page number, and return a list with all matches appended to it
         for item in self.inventory:
-            
-            # Account for multiple item types
             if isinstance(item, list):
                 for subItem in item:
                     if subItem.pg == pg:
@@ -182,9 +146,7 @@ class UserShop:
         return ret
         
     def _hasPageChanged(self, pg):
-        # Loop through all items and compare price to oldPrice to determine any changes on the page
         for item in self._itemsOnPage(pg):
-            
             if item.price != item.oldPrice:
                 return True
                 
@@ -195,9 +157,7 @@ class UserShop:
         
     def _constructPagePostData(self, pg):
         postData = {}
-        # Loop through all items on a given page
         for item in self._itemsOnPage(pg):
-            # Construct post data for updating the shop page information
             postData["obj_id_" + str(item.pos)] = item.id
             postData['oldcost_' + str(item.pos)] = item.oldPrice
             postData['cost_' + str(item.pos)] = str(item.price)

@@ -1,9 +1,5 @@
 
 class Inventory(object):
-    # Defines whether the inventory is empty or not
-    empty = False
-            
-    # The rest of these methods simply allow this class and child classes to be treated as a dictionary 
     
     def __getitem__(self, key):
         return self.items[key]
@@ -28,4 +24,4 @@ class Inventory(object):
         return len(self.items)
             
     def empty(self):
-        return self.empty
+        return bool(len(self.items))
