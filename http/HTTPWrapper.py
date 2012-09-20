@@ -135,9 +135,10 @@ class HTTPWrapper:
         
         # Update cookies to reflect this request
         if not self.cookieJar:
-            self.cookieJar = CookieJar(self.respHeader.cookies)
+            self.cookieJar = CookieJar()
+            self.cookieJar.addCookiesFromStr(self.respHeader.cookies)
         else:
-            self.cookieJar.addCookies(self.respHeader.cookies)
+            self.cookieJar.addCookiesFromStr(self.respHeader.cookies)
             
         if "Content-Encoding" in self.respHeader.vars:
             if self.respHeader.vars['Content-Encoding'].find("gzip") != -1:

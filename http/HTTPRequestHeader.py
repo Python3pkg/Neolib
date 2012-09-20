@@ -1,3 +1,10 @@
+""":mod:`HTTPRequestHeader` -- Contains the HTTPRequestHeader class
+
+.. module:: HTTPRequestHeader
+   :synopsis: Contains the HTTPRequestHeader class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.config.Config import Config
 from urlparse import urlparse
 from textwrap import dedent
@@ -8,31 +15,67 @@ import json
 import os
 
 class HTTPRequestHeader:
-    vars = {}
+    
+    """Objectifies a HTTP Request Header
+    
+    This class wraps a HTTP Request Header by providing functionality to create
+    and properly format a standard compliant HTTP Request Header.
+    
+    Attributes
+       content (str) - Raw HTTP Request Header content
+       vars (dict) - All HTTP Request variables
+        
+    Initialization
+       HTTPRequestHeader(type, host, document, cookies="", postData=None, vars=None, proxyURL=None):
+       
+       Builds a compliant HTTP Request Header and stores it in HTTPRequestHeader.content
+       
+       Takes the given parameters and formats them into a compliant HTTPRequestHeader.
+       Note the POST data and additional variables are given as a dictionary in the
+       format of {'name': 'value'}. The class will convert these dictionaries into
+       their proper string equivalents in initialization. 
+       
+       Parameters
+          type (str) - Type of HTTP Request (GET or POST)
+          host (str) - Remote host URL
+          document (str) - Remote document to request
+          cookies (str) - Cookies to be attached with the request
+          postData (dict) - Post DATA to be sent with the request
+          vars (dict) - Additional HTTP Request variables to add or override
+          proxyURL (str) - Full URL to the remote document
+          
+       Raises
+          Exception
+    """
+    
     content = ""
+    vars = {}
     
     GET = "GET"
     POST = "POST"
     
-    def __init__(self, type, host, document, cookies = "", postData = None, vars = None, proxyURL = None):
+    _defaultVars = {"HTTPVER": "1.1",
+                   "USER-AGENT": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:14.0) Gecko/20100101 Firefox/14.0.1",
+                   "ACCEPT": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                   "ACCEPT-LANGUAGE": "en-us,en;q=0.5",
+                   "ACCEPT-ENCODING": "gzip, deflate",
+                   "CONNECTION": "close"}
+    
+    def __init__(self, type, host, document, cookies="", postData=None, vars=None, proxyURL=None):
         if not (type == self.GET or type == self.POST):
             logging.getLogger("neolib.http").info("Invalid request header type given: " + type)
             raise Exception
         
-        # Load the default header vars from the local JSON file
-        path = os.path.dirname(os.path.abspath(HTTPResponseHeader.__file__)) + "/HTTPHeaders.json"
-        loadedVars = json.loads( open( path).read() )
-        
         if not Config.getGlobal():
             # Set Firefox as the default
-            self.vars = loadedVars["Firefox"]
+            self.vars = self._defaultVars
         else:
             # Ensure the setting actually exists
-            if Config.getGlobal()['HTTPHeaderVer'] in loadedVars:
-                self.vars = loadedVars[Config.getGlobal()['HTTPHeaderVer']]
+            if 'HTTPHEADER' in Config.getGlobal():
+                self.vars = Config.getGlobal()['HTTPHEADER']
             else:
                 # Set Firefox as the default
-                self.vars = loadedVars["Firefox"]
+                self.vars = self._defaultVars
         
         # Updates default loaded variables with any user added variables
         if vars:

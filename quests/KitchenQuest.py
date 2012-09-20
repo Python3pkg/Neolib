@@ -26,15 +26,23 @@ class KitchenQuest:
         self.usr = usr
         pg = usr.getPage("http://www.neopets.com/island/kitchen.phtml")
         
+        if pg.content.find("Sorry, too late") != -1:
+            pg = usr.getPage("http://www.neopets.com/island/kitchen.phtml")
+        
         if pg.content.find("there is a limit of") != -1:
             raise questLimitException
         
         if pg.content.find("still need some ingredients from you") != -1:
             self._parseActiveQuest(pg)
+            
+            usr.loadInventory()
+            for item in self.items:
+                if item.name in usr.inventory:
+                    del(self.items[self.items.index(item)])
             return
-        
+            
         try:
-            self.recipe = pg.find("td", class_="content").find("input", {'name': 'food_desc'})['value']
+            self.recipe = pg.find("td", "content").find("input", {'name': 'food_desc'})['value']
         except Exception:
             logging.getLogger("neolib.quest").exception("Failed to parse quest recipe")
             logging.getLogger("neolib.html").info("Failed to parse quest recipe", {'pg': pg})
@@ -65,6 +73,7 @@ class KitchenQuest:
         
     def getPrice(self, searches):
         totalPrice = 0
+        
         for item in self.items:
             res = ShopWizard.priceItem(self.usr, item.name, searches, ShopWizard.RETLOW)
             
