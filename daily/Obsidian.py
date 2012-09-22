@@ -1,6 +1,18 @@
+""":mod:`Obsidian` -- Contains the Obsidian class
+
+.. module:: Obsidian
+   :synopsis: Contains the Obsidian class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.daily.Daily import Daily
 
 class Obsidian(Daily):
+        
+    """Provides an interface for the Obsidian Quarry daily
+    
+    For a more detailed description, please refer to the Daily class.
+    """
         
     def play(self):
         # Visit daily page

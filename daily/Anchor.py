@@ -1,9 +1,21 @@
+""":mod:`Anchor` -- Contains the Anchor class
+
+.. module:: Anchor
+   :synopsis: Contains the Anchor class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
 import logging
 
 class Anchor(Daily):
+        
+    """Provides an interface for the Anchor Management daily
+    
+    For a more detailed description, please refer to the Daily class.
+    """
         
     def play(self):
         # Visit daily page

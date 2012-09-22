@@ -1,10 +1,22 @@
+""":mod:`ShopOfOffers` -- Contains the ShopOfOffers class
+
+.. module:: ShopOfOffers
+   :synopsis: Contains the ShopOfOffers class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
 import logging
 
 class ShopOfOffers(Daily):
-        
+    
+    """Provides an interface for the Shop of Offers daily
+    
+    For a more detailed description, please refer to the Daily class.
+    """
+    
     def play(self):
         # Visit daily page
         pg = self.player.getPage("http://www.neopets.com/shop_of_offers.phtml?slorg_payout=yes")

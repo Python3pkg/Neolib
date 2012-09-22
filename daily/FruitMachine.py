@@ -1,9 +1,21 @@
+""":mod:`FruitMachine` -- Contains the FruitMachine class
+
+.. module:: FruitMachine
+   :synopsis: Contains the FruitMachine class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
 import logging
 
 class FruitMachine(Daily):
+    
+    """Provides an interface for the Coltzan Shrine daily
+    
+    For a more detailed description, please refer to the Daily class.
+    """
     
     def play(self):
         # Visit daily page

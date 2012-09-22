@@ -1,37 +1,42 @@
+""":mod:`Tombola` -- Contains the Tombola class
+
+.. module:: Tombola
+   :synopsis: Contains the Tombola class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
 import logging
 
 class Tombola(Daily):
-    # Whether or not the prize was a booby prize
-    booby = False
     
-    # The ticket number
+    """Provides an interface for the Tombola daily
+    
+    For a more detailed description, please refer to the Daily class.
+    """
+    
+    booby = False
     ticket = ""
     
     def play(self):
-	    # Visit daily page
         pg = self.player.getPage("http://www.neopets.com/island/tombola.phtml")
 	    
-	    # Process daily
         pg = self.player.getPage("http://www.neopets.com/island/tombola2.phtml", {'submit': 'play'})
         
-        # Ensure daily not previously completed
         if pg.content.find("only allowed one") != -1:
 			raise dailyAlreadyDone()
         
-        # Check if we got any prize at all
+        # Indicates no prizes
         if pg.content.find("don't even get a booby prize") != -1:
 			return
 		
-        # Check if we won. The content layout will be different if we won.
+        # The content layout will be different if the user won.
         if pg.content.find("YOU ARE A WINNER")!= -1:
-            # Parse the response
             try:
                 panel = pg.find("b", text="Tiki Tack Tombola").parent
                 
-                # Grab the nps won
                 self.nps = panel.find_all("font")[1].text.split("Win ")[1]
                 
                 # First image is the ticket, so pop it off
@@ -46,7 +51,6 @@ class Tombola(Daily):
                 logging.getLogger("neolib.html").info("Could not parse Tombola daily.", {'pg': pg})
                 raise parseException
         else:
-            # Parse the response
             try:
                 panel = pg.find("b", text="Tiki Tack Tombola").parent
                 
@@ -63,16 +67,12 @@ class Tombola(Daily):
                 logging.getLogger("neolib.html").info("Could not parse Tombola daily.", {'pg': pg})
                 raise parseException
             
-        # See if they were feeling sorry
         if pg.content.find("feeling sorry for you") != -1:
-            # Grab the "feel sorry" nps
             self.nps = panel.find_all("p")[-1].b.text + " NPS"
         
-		# If it was a booby, make it known
         if pg.content.find("not a winning ticket") != -1:
             self.booby = True
 			
-		# Show that we won
         self.win = True
 
     def getMessage(self):

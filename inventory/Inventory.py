@@ -1,3 +1,9 @@
+""":mod:`Inventory` -- Contains the Inventory class
+
+.. module:: Inventory
+   :synopsis: Contains the Inventory class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
 
 class Inventory(object):
     

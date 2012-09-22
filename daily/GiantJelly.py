@@ -1,9 +1,21 @@
+""":mod:`GiantJelly` -- Contains the GiantJelly class
+
+.. module:: GiantJelly
+   :synopsis: Contains the GiantJelly class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
 import logging
 
 class GiantJelly(Daily):
+    
+    """Provides an interface for the Giant Jelly daily
+    
+    For a more detailed description, please refer to the Daily class.
+    """
     
     def play(self):
         # Visit daily page

@@ -1,10 +1,22 @@
+""":mod:`GiantOmelette` -- Contains the GiantOmelette class
+
+.. module:: GiantOmelette
+   :synopsis: Contains the GiantOmelette class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
 import logging
 
 class GiantOmelette(Daily):
-        
+    
+    """Provides an interface for the Giant Omelette daily
+    
+    For a more detailed description, please refer to the Daily class.
+    """
+    
     def play(self):
         # Visit daily page
         pg = self.player.getPage("http://www.neopets.com/prehistoric/omelette.phtml")

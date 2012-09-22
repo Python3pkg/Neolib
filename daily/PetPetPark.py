@@ -1,10 +1,22 @@
+""":mod:`PetPetPark` -- Contains the PetPetPark class
+
+.. module:: PetPetPark
+   :synopsis: Contains the PetPetPark class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
 import logging
 
 class PetPetPark(Daily):
-        
+    
+    """Provides an interface for the Pet Pet Park daily
+    
+    For a more detailed description, please refer to the Daily class.
+    """
+    
     def play(self):
         # Visit daily page
         pg = self.player.getPage("http://www.neopets.com/petpetpark/daily.phtml")
