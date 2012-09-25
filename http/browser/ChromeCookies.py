@@ -5,24 +5,34 @@
 .. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
 """
 
-from neolib.http.CookieJar import CookieJar
 from neolib.http.Cookie import Cookie
 from sqlite3 import dbapi2 as sqlite
-import os
+from neolib.http.CookieJar import CookieJar
+from neolib.http.browser.BrowserCookies import BrowserCookies
 import datetime
+import logging
+import time
+import os
 
-class ChromeCookies:
+class ChromeCookies(BrowserCookies):
     
     """Provides an interface for retrieving stored Neopets cookies from Google Chrome
     
     Provides functionality for detecting Google Chrome, determining Chrome's application
     data storage path, and querying Chrome's cookies DB for any cookies associated with
-    Neopets. 
+    Neopets.
+    
+    Attributes:
+       name (str) - Name to access browser with
+       desc (str) - Readable name of the browser (I.E 'Google Chrome')
     """
     
-    @staticmethod
-    def isChromeInstalled():
-        """ Returns whether or not Cookie Chrome is installed
+    name = "CHROME"
+    desc = "Google Chrome"
+    
+    @property
+    def installed():
+        """ Returns whether or not Google Chrome is installed
         
         Determines the application data path for Google Chrome
         and checks if the path exists. If so, returns True, otherwise
@@ -40,40 +50,61 @@ class ChromeCookies:
             return False
         
     @staticmethod
-    def loadChromeCookies(usr):
-        """ Loads all Neopets cookie stored by Google Chrome into the specified User object
+    def loadCookies(domain):
+        """ Loads all Neopets cookie stored by Google Chrome into a CookieJar
         
         Determines the application data path for Google Chrome, finds the cookie database file,
         queries it for cookies with domain neopets.com, and proceeds to build a CookieJar with
-        the associated data and assigns the CookieJar to the given User.
+        the associated data.
         
         Parameters
-           usr (User) - User to assign cookies to
+           domain (str) - Domain to search for cookies with
            
         Returns
-           usr or bool - If failed, returns False, otherwise returns modified User object
+           CookieJar or bool - If failed, returns False, otherwise returns CookieJar
         """
         try:
             path = ChromeCookies._getPath()
             cursor = sqlite.connect(path, timeout=0.1).cursor()
-            cursor.execute("select name, value from cookies WHERE host_key='.neopets.com'")
+            cursor.execute("select name, value, path from cookies WHERE host_key='" + domain + "'")
             results = cursor.fetchall()
+            
+            if not results:
+                raise noCookiesForDomain
             
             cookies = []
             expire = datetime.datetime.now() + datetime.timedelta(365)
             for result in results:
-                cookies.append(Cookie(name=result[0], value=result[1], expires=expire))
+                cookies.append(Cookie(result[0], result[1], expire, domain, results[2][2]))
             
             cj = CookieJar()
-            cj.addCookies(cookies)
+            cj.addCookies(domain, cookies)
         
-            usr.cookieJar = cj
-        
-            return usr
+            return cj
         except Exception as e:
-            print e
+            logging.getLogger("neolib.http").exception("Failed to load Google Chrome cookies")
             return False
-        
+    
+    @staticmethod
+    def writeCookies(domain, cookieJar):
+        try:
+            path = ChromeCookies._getPath()
+            con = sqlite.connect(path, timeout=3.0)
+            cursor = con.cursor()
+            
+            cursor.execute("delete from cookies where host_key='" + domain + "'")
+            for cookie in cookieJar.getCookies(domain):
+                now = int(round(time.time(), 0)) * 10000000
+                expires = int(time.mktime(cookie.expires.timetuple())) * 10000000
+                sql = "insert into cookies (host_key, path, secure, expires_utc, name, value, last_access_utc, httponly) VALUES('%s','%s',0,%d,'%s','%s',%d,0)" % (domain, cookie.path, expires, cookie.name, cookie.value, now)
+                
+                cursor.execute(sql)
+            
+            con.commit()
+            return True
+        except Exception as e:
+            return False
+            
     @staticmethod
     def _getPath():
         """ Returns Chrome's cookie database path

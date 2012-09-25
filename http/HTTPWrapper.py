@@ -75,8 +75,10 @@ class HTTPWrapper:
             
         # Converts cookies to string form
         cookies = ""
+        cookieDomain = parsedUrl.netloc.replace("www", "")
         if self.cookieJar:
-            cookies = self.cookieJar.getCookies()
+            if cookieDomain in self.cookieJar:
+                cookies = CookieJar.cookiesToStr(self.cookieJar.getCookies(cookieDomain))
         
         # Add a query if it exists
         document = parsedUrl.path

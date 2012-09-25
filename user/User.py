@@ -1,6 +1,9 @@
 from neolib.exceptions import logoutException
 from neolib.exceptions import neopetsOfflineException
+from neolib.exceptions import noCookiesForDomain
 from neolib.inventory.UserInventory import UserInventory
+from neolib.http.browser.BrowserCookies import BrowserCookies
+from neolib.http.CookieJar import CookieJar
 from neolib.shop.UserShop import UserShop
 from neolib.config.Config import Config
 from neolib.http.Page import Page
@@ -26,12 +29,14 @@ class User:
     pin = None
     config = None
     proxy = None
+    browser = None
     
     lastPage = ""
     useRef = True
     autoLogin = True
     loggedIn = False
     useHooks = True
+    browserSync = False
     
     def __init__(self, username, password, pin=None):
         # Neopets automatically converts all capitals in a username to lowercase
@@ -73,7 +78,8 @@ class User:
         # A lack of data indicates the user configuration file didn't exist
         if not self.config.data:
             data = {'useHooks': 'True', 
-                    'autoLogin': 'True'} # Default configuration options
+                    'autoLogin': 'True',
+                    'browserSync': 'False'} # Default configuration options
             self.config = Config.createUserConfig(self.username, data)
     
     def updateNps(self, pg = None):
@@ -85,6 +91,29 @@ class User:
     
     def setProxy(self, host, port):
         self.proxy = (host, port)
+    
+    def syncWithBrowser(self, browser):
+        BrowserCookies.loadBrowsers()
+        if not browser in BrowserCookies.browsers:
+                return False
+        
+        self.browserSync = True
+        self.browser = browser
+        return True
+        
+    def __syncCookies(self):
+        if self.browserSync:  
+            cj = BrowserCookies.getCookies(self.browser, ".neopets.com")
+            if not cj:
+                return False
+                
+            self.cookieJar = cj
+            return True
+        return False
+        
+    def __writeCookies(self):
+        if self.browserSync:  
+            cj = BrowserCookies.setCookies(self.browser, ".neopets.com", self.cookieJar)
     
     def getPage(self, url, postData = None, vars = None, usePin = False):
         # If using a referer is desired and one has not already been supplied, 
@@ -100,8 +129,14 @@ class User:
                 # All forms that require a pin share the same variable name of 'pin'
                 postData['pin'] = str(self.pin)
         
+        if self.browserSync:
+            self.__syncCookies()
+        
         pg = Page(url, self.cookieJar, postData, vars, self.proxy)
         self.cookieJar = pg.cookies
+        
+        if self.browserSync:
+            self.__writeCookies()
         
         if pg.content.find("http://images.neopets.com/homepage/indexbak_oops_en.png") != -1:
             raise neopetsOfflineException

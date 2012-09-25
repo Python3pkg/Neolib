@@ -19,68 +19,70 @@ class Cookie:
        name (str) - Cookie name
        value (str) - Cookie Value
        expires (datetime) - Cookie expiration date
+       expired (bool) - Whether or not cookie is expired
        path (str) - Cookie path
        domain (str) - Cookie's domain
         
     Initialization
-       HTTPRequestHeader(self, cookieStr = "", name="", value="", expires=None):
+       Cookie(self, name, value, expires, domain, path):
        
-       Receives a raw cookie string and parses its contents or receives cookie
-       details and sets itself appropriately. 
+       Initializes the Cookie object with given parameters 
        
        Parameters
-          cookieStr (str) - Raw cookie string from a HTTP Response Header
           name (str) - Cookie name
           value (str) - Cookie value
           expires (datetime) - Cookie expiration date
-          
-       Raises
-          Exception
+          domain (str) - Cookie's domain
+          path (str) - Cookie's path
     """
     
     name = ""
     value = ""
-    expires = ""
-    path = ""
+    expires = None
     domain = ""
+    path = ""
     
-    def __init__(self, cookieStr = "", name="", value="", expires=None):
-        if name and value and expires:
-            self.name = name
-            self.value = value
-            self.expires = expires
-            return
+    def __init__(self, name, value, expires, domain, path):
+        if not isinstance(expires, datetime):
+            raise TypeError("Invalid cookie expiration")
         
+        self.name = name
+        self.value = value
+        self.expires = expires
+        self.domain = domain
+        self.path = path
+        
+    @staticmethod
+    def cookieFromStr(cookieStr):
+        """ Parses a raw cookie string, returns a Cookie object representing the string
+        
+        Parameters:
+           cookieStr (str) - Raw cookie string
+           
+        Returns:
+           Cookie - Cookie object representing the string
+           
+        Raises:
+           Exception
+        """
         # Small addition to simplify parsing
         cookieStr += "\r"
         
         try:
             mat = re.match("(.*)=(.*); expires=(.*); path=(.*); domain=(.*?)\r", cookieStr)
+            expires = datetime.strptime(mat.group(3), "%a, %d-%b-%Y %H:%M:%S %Z")
             
-            self.name = mat.group(1)
-            self.value = mat.group(2)
-            self.expires = datetime.strptime(mat.group(3), "%a, %d-%b-%Y %H:%M:%S %Z")
-            self.path = mat.group(4)
-            self.domain = mat.group(5)
+            return Cookie(mat.group(1), mat.group(2), expires, mat.group(5), mat.group(4))
         except Exception:
             logging.getLogger("neolib").exception("Failed to parse cookie string: " + cookieStr)
-        
-    def isExpired(self):
-        """ Compares cookie expiration date to now, returns if cookie is expired
-           
-        Returns
-           bool - True if cookie is expired
-        """
-        # Compare the cookie expiration date to now and determine if it's expired
+            raise Exception("Failed to parse HTTP cookie from string")
+            
+    @property
+    def expired(self):
         if datetime.now() < self.expires:
             return False
         else:
             return True
-    
-    def toStr(self):
-        """ Returns a string representation of the cookie
-           
-        Returns
-           str - Cookie string ("name-value;")
-        """
-        return self.name + "=" + self.value + ";"
+            
+    def __str__(self):
+        return "=".join([self.name, self.value])

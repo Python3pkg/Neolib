@@ -22,6 +22,12 @@ class HTTPException(Exception):
 class invalidProxy(Exception):
     pass
     
+class browserNotInstalled(Exception):
+    pass
+    
+class noCookiesForDomain(Exception):
+    pass
+    
     
 # User
 class logoutException(Exception):

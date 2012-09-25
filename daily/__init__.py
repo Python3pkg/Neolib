@@ -1,1 +1,10 @@
-# Future use
+from Anchor import Anchor
+from ColtzanShrine import ColtzanShrine
+from FruitMachine import FruitMachine
+from GiantJelly import GiantJelly
+from GiantOmelette import GiantOmelette
+from MarrowGuess import MarrowGuess
+from Obsidian import Obsidian
+from PetPetPark import PetPetPark
+from ShopOfOffers import ShopOfOffers
+from Tombola import Tombola
