@@ -1,3 +1,10 @@
+""":mod:`UserShopBackInventory` -- Contains the UserShopBackInventory class
+
+.. module:: UserShopBackInventory
+   :synopsis: Contains the UserShopBackInventory class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.exceptions import invalidShop
 from neolib.exceptions import invalidUser
 from neolib.exceptions import parseException
@@ -7,6 +14,41 @@ import logging
 
 
 class UserShopBackInventory(Inventory):
+    
+    """Represents the back end of a user's shop inventory
+    
+    Sub-classes the Inventory class to provide an interface for the
+    back end of a user's personal shop.
+    
+    Attributes:
+       pages (int) - Number of shop stock pages
+       
+    Initialization
+       UserShopBackInventory(usr)
+       
+       Loads the back end of a user's shop inventory
+       
+       Queries the user's shop stock page and determines the number
+       of pages the shop stock has, then proceeds to query each page,
+       parse all the items, and add each item to the inventory. Note
+       this class should not be used directly, but rather the 
+       "UserShopBack" class should be used.
+       
+       Parameters
+          usr (User) - The user to load the shop inventory for
+          
+       Raises
+          invalidUser
+          parseException
+        
+    Example
+       >>> usr.loadShop()
+       >>> for item in usr.shop.inventory:
+       ...     print item.name
+       Blue Kougra Plushie
+       Lu Codestone
+       ...
+    """
     
     pages = 0
     

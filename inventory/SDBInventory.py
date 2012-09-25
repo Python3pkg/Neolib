@@ -1,3 +1,10 @@
+""":mod:`SDBInventory` -- Contains the SDBInventory class
+
+.. module:: SDBInventory
+   :synopsis: Contains the SDBInventory class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.exceptions import invalidUser
 from neolib.exceptions import parseException
 from neolib.item.Item import Item
@@ -6,6 +13,43 @@ import logging
 
 
 class SDBInventory(Inventory):
+    
+    """Represents a user's safety deposit box inventory
+    
+    Sub-classes the Inventory class to provide an interface for a user's
+    Safety Deposit Box. Will automatically populate itself with all items
+    (including those across multiple pages) in a user's Safety Deposit
+    Box upon initialization.
+    
+    Attributes
+       pages (int) - The number of pages the SDB has
+       
+    Initialization
+       SDBInventory(usr)
+       
+       Loads SDB inventory
+       
+       Queries the user's Safety Deposit Box, determines the number of
+       pages in the SDB, and then proceeds to request each page and 
+       parse all items from the page and add each item to the inventory.
+       Note this class should not be used directly, but rather "SDB"
+       should be used to access a user's SDB.
+       
+       Parameters
+          usr (User) - The user to load the SDB for
+          
+       Raises
+          invalidUser
+          parseException
+        
+    Example
+       >>> usr.loadSDB()
+       >>> for item in usr.SDB.inventory:
+       ...     print item.name
+       Blue Kougra Plushie
+       Lu Codestone
+       ...
+    """
     
     pages = 0
     

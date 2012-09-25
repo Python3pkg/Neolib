@@ -6,6 +6,15 @@
 """
 
 class Inventory(object):
+    """Represents a Neopets inventory
+    
+    This class is designed to be sub-classed by other
+    classes that represent a Neopets inventory. Such
+    examples include user inventory, safety deposit
+    box, and shop inventory. The main purpose of this
+    class is to provide a common interface for all
+    inventories.
+    """
     
     def __getitem__(self, key):
         return self.items[key]

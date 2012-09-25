@@ -1,3 +1,10 @@
+""":mod:`UserShopFrontInventory` -- Contains the UserShopFrontInventory class
+
+.. module:: UserShopFrontInventory
+   :synopsis: Contains the UserShopFrontInventory class
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.exceptions import invalidShop
 from neolib.exceptions import invalidUser
 from neolib.exceptions import parseException
@@ -7,6 +14,42 @@ import logging
 
 
 class UserShopFrontInventory(Inventory):
+    
+    """Represents a user's shop front inventory
+    
+    Sub-classes the Inventory class to provide an interface for a user's
+    shop front inventory. Will automatically populate itself with all items
+    in a user's shop front inventory upon initialization.
+       
+    Initialization
+       UserShopFrontInventor(usr, owner = "", objID = "", price = ""):
+       
+       Loads a user's shop front inventory
+       
+       Queries a user's shop front, parses all the items in the shop,
+       and adds each item to the inventory. Note this class should not
+       be used directly, but rather "UserShopFront" should be used.
+       
+       Parameters
+          usr (User) - The user to load the shop page with
+          owner (str) - The owner of the shop to load
+          objID (str) - The object ID of an item being sought in the shop
+          price (str) - The price of an item being sought in the shop
+          
+       Raises
+          invalidUser
+          invalidShop
+          parseException
+        
+    Example
+       >>> sh = UserShopFront(usr, "someusername")
+       >>> sh.loadInventory()
+       >>> for item in sh.inventory:
+       ...     print item.name
+       Blue Kougra Plushie
+       Lu Codestone
+       ...
+    """
     
     def __init__(self, usr, owner = "", objID = "", price = ""):
         if not usr:
