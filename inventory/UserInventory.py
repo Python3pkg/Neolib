@@ -13,7 +13,7 @@ import logging
 
 class UserInventory(Inventory):
      
-     """Represents a user's inventory
+    """Represents a user's inventory
     
     Sub-classes the Inventory class to provide an interface for a user's
     inventory. Will automatically populate itself with all items

@@ -12,6 +12,7 @@ from neolib.http.browser.BrowserCookies import BrowserCookies
 import datetime
 import logging
 import time
+import pytz
 import os
 
 class ChromeCookies(BrowserCookies):
@@ -65,9 +66,11 @@ class ChromeCookies(BrowserCookies):
         """
         try:
             path = ChromeCookies._getPath()
-            cursor = sqlite.connect(path, timeout=0.1).cursor()
-            cursor.execute("select name, value, path from cookies WHERE host_key='" + domain + "'")
-            results = cursor.fetchall()
+            results = []
+            with sqlite.connect(path, timeout=0.1) as conn:
+                cursor = conn.cursor()
+                cursor.execute("select name, value, path, expires_utc from cookies WHERE host_key='" + domain + "'")
+                results = cursor.fetchall()
             
             if not results:
                 raise noCookiesForDomain
@@ -75,7 +78,13 @@ class ChromeCookies(BrowserCookies):
             cookies = []
             expire = datetime.datetime.now() + datetime.timedelta(365)
             for result in results:
-                cookies.append(Cookie(result[0], result[1], expire, domain, results[2][2]))
+                if not result[3]:
+                    expire = datetime.datetime.now() + datetime.timedelta(365)
+                else:
+                    epoch = datetime.datetime(1601, 1, 1, tzinfo=pytz.UTC)
+                    expire = epoch + datetime.timedelta(microseconds=result[3])
+                
+                cookies.append(Cookie(result[0], result[1], expire, domain, result[2]))
             
             cj = CookieJar()
             cj.addCookies(domain, cookies)
@@ -89,18 +98,18 @@ class ChromeCookies(BrowserCookies):
     def writeCookies(domain, cookieJar):
         try:
             path = ChromeCookies._getPath()
-            con = sqlite.connect(path, timeout=3.0)
-            cursor = con.cursor()
-            
-            cursor.execute("delete from cookies where host_key='" + domain + "'")
-            for cookie in cookieJar.getCookies(domain):
-                now = int(round(time.time(), 0)) * 10000000
-                expires = int(time.mktime(cookie.expires.timetuple())) * 10000000
-                sql = "insert into cookies (host_key, path, secure, expires_utc, name, value, last_access_utc, httponly) VALUES('%s','%s',0,%d,'%s','%s',%d,0)" % (domain, cookie.path, expires, cookie.name, cookie.value, now)
+            with sqlite.connect(path, timeout=3.0) as conn:
+                cursor = conn.cursor()
+                cursor.execute("delete from cookies where host_key='" + domain + "'")
                 
-                cursor.execute(sql)
-            
-            con.commit()
+                for cookie in cookieJar.getCookies(domain):
+                    now = int(round(time.time(), 0)) * 10000000
+                    expires = int(time.mktime(cookie.expires.timetuple())) * 10000000
+                    sql = "insert into cookies (host_key, path, secure, expires_utc, name, value, last_access_utc, httponly) VALUES('%s','%s',0,%d,'%s','%s',%d,0)" % (domain, cookie.path, expires, cookie.name, cookie.value, now)
+                    
+                    cursor.execute(sql)
+                
+                conn.commit()
             return True
         except Exception as e:
             return False
@@ -112,6 +121,11 @@ class ChromeCookies(BrowserCookies):
         Returns
            str - Google Chrome's cookie database path
         """
+        
+        if os.name == "posix":
+            path = os.getenv("HOME") + "/.config/google-chrome/Default/Cookies"
+            return path
+        
         import _winreg
         key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, 'Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders')
         path = _winreg.QueryValueEx(key, 'Local AppData')[0]
