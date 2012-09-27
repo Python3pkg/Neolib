@@ -28,8 +28,10 @@ class User:
     activePet = None
     pin = None
     config = None
+    hooks = None
     proxy = None
     browser = None
+    RECallback = None
     
     lastPage = ""
     useRef = True
@@ -43,6 +45,12 @@ class User:
         self.username = username.lower()
         self.password = password
         self.pin = pin
+        
+        # Default hooks
+        self.hooks = []
+        self.hooks.append(updateNPs)
+        self.hooks.append(updatePet)
+        self.hooks.append(autoLogin)
         
     def login(self):
         data = "username=" + self.username + "&password=" + self.password + "&destination=/index.phtml"
@@ -81,6 +89,12 @@ class User:
                     'autoLogin': 'True',
                     'browserSync': 'False'} # Default configuration options
             self.config = Config.createUserConfig(self.username, data)
+    
+    def addHook(self, hook):
+        self.hooks.append(hook)
+        
+    def setRandomEventCallback(self, cb):
+        self.RECallback = cb
     
     def updateNps(self, pg = None):
         # If no page is supplied, just load the index
@@ -142,6 +156,6 @@ class User:
             raise neopetsOfflineException
         
         if self.useHooks:
-            for hook in UserHook.__subclasses__():
-                self, pg = hook.processHook(self, pg)
+            for hook in self.hooks:
+                self, pg = hook(self, pg)
         return pg        
