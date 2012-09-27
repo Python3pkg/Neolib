@@ -7,6 +7,7 @@
 
 from datetime import datetime
 import logging
+import pytz
 import re
 
 class Cookie:
@@ -79,10 +80,16 @@ class Cookie:
             
     @property
     def expired(self):
-        if datetime.now() < self.expires:
-            return False
+        if not self.expires.tzinfo:
+            if datetime.now() < self.expires:
+                return False
+            else:
+                return True
         else:
-            return True
+            if datetime.now().replace(tzinfo=pytz.UTC) < self.expires:
+                return False
+            else:
+                return True
             
     def __str__(self):
         return "=".join([self.name, self.value])
