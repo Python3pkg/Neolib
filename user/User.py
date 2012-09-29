@@ -38,7 +38,7 @@ class User:
     useHooks = True
     browserSync = False
     
-    def __init__(self, username, password, pin=None):
+    def __init__(self, username, password = "", pin=None):
         # Neopets automatically converts all capitals in a username to lowercase
         self.username = username.lower()
         self.password = password
