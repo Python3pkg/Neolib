@@ -14,12 +14,12 @@ class HTMLHandler(logging.Handler):
         pg = record.args['pg']
         
         # Format a log message that details the page
-        ret = "Message: " + record.msg + "\nLine Number: " + str(record.lineno) + "\nURL: " + str(pg.url) + "\nPost Data: " + str(pg.postData) + "\nCookies" + str(pg.intCookies) + "\nAdditional Vars: " + str(pg.vars)
-        ret += "\n\n\n" + pg.header.content + "\n\n" + pg.content
+        ret = "Message: " + record.msg + "\nLine Number: " + str(record.lineno) + "\nURL: " + str(pg.url) + "\nPost Data: " + str(pg.postData) + "\nCookies" + str(pg.request.cookies) + "\nAdditional Vars: " + str(pg.vars)
+        ret += "\n\n\n" + str(pg.header) + "\n\n" + pg.content
         
         # Write the file
         f = open(fileName, "w")
-        f.write(ret.encode("ascii", "ignore"))
+        f.write(ret)
         f.close()
         
         

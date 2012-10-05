@@ -3,9 +3,8 @@ from neolib.exceptions import neopetsOfflineException
 from neolib.exceptions import noCookiesForDomain
 from neolib.inventory.UserInventory import UserInventory
 from neolib.http.browser.BrowserCookies import BrowserCookies
-from neolib.http.CookieJar import CookieJar
 from neolib.shop.UserShop import UserShop
-from neolib.config.Config import Config
+from neolib.config.Configuration import Configuration
 from neolib.http.Page import Page
 from neolib.user.Bank import Bank
 from neolib.user.hooks import *
@@ -17,7 +16,7 @@ class User:
     username = ""
     password = ""
     
-    cookieJar = None
+    session = None
     
     inventory = None
     bank = None
@@ -40,11 +39,16 @@ class User:
     useHooks = True
     browserSync = False
     
+    configVars = ['username', 'proxy', 'browser', 'useRef', 'autoLogin', 'useHooks', 'browserSync']
+    
     def __init__(self, username, password = "", pin=None):
         # Neopets automatically converts all capitals in a username to lowercase
         self.username = username.lower()
         self.password = password
         self.pin = pin
+        
+        # Each User instance needs a unique session
+        self.session = Page.newSession()
         
         # Default hooks
         self.hooks = []
@@ -52,12 +56,15 @@ class User:
         self.hooks.append(updatePet)
         self.hooks.append(autoLogin)
         
-    def login(self):
-        data = "username=" + self.username + "&password=" + self.password + "&destination=/index.phtml"
-        pg = self.getPage("http://www.neopets.com/login.phtml", {'username': self.username, 'password': self.password, 'destination': '/index.phtml'})
-        self.cookieJar = pg.cookies
+        # Config
+        if not Configuration.loaded():
+            if Configuration.initialize():
+                self.__loadConfig()
+        else:
+            self.__loadConfig()
         
-        pg = self.getPage("http://www.neopets.com/index.phtml")
+    def login(self):
+        pg = self.getPage("http://www.neopets.com/login.phtml", {'username': self.username, 'password': self.password, 'destination': '/index.phtml'})
         
         # Index page should contain the username if successfully logged in
         if pg.content.find(self.username) != -1:
@@ -80,16 +87,6 @@ class User:
         self.SDB = SDB(self)
         self.SDB.loadInventory()
     
-    def loadConfig(self):
-        self.config = Config(self.username)
-        
-        # A lack of data indicates the user configuration file didn't exist
-        if not self.config.data:
-            data = {'useHooks': 'True', 
-                    'autoLogin': 'True',
-                    'browserSync': 'False'} # Default configuration options
-            self.config = Config.createUserConfig(self.username, data)
-    
     def addHook(self, hook):
         self.hooks.append(hook)
         
@@ -103,8 +100,8 @@ class User:
             
         self.nps = int( pg.find("a", id = "npanchor").text.replace(",", "") )
     
-    def setProxy(self, host, port):
-        self.proxy = (host, port)
+    def setProxy(self, proxy):
+        self.proxy = proxy
     
     def syncWithBrowser(self, browser):
         BrowserCookies.loadBrowsers()
@@ -115,19 +112,46 @@ class User:
         self.browser = browser
         return True
         
+    def exportVars(self):
+        # Code to load all attributes
+        for prop in dir(self):
+            if getattr(self, prop) == None: continue
+            if not prop in self.configVars: continue
+            self.config[prop] = str(getattr(self, prop))
+            
+        self.config.write()
+        
     def __syncCookies(self):
         if self.browserSync:  
             cj = BrowserCookies.getCookies(self.browser, ".neopets.com")
             if not cj:
                 return False
                 
-            self.cookieJar = cj
+            self.session.cookies = cj
             return True
         return False
         
     def __writeCookies(self):
         if self.browserSync:  
-            cj = BrowserCookies.setCookies(self.browser, ".neopets.com", self.cookieJar)
+            BrowserCookies.setCookies(self.browser, ".neopets.com", self.session.cookies)
+            
+    def __loadConfig(self):
+        c = Configuration.getConfig()
+        if not self.username in c.users:
+            c.users.addSection(self.username)
+            self.config = c.users[self.username]
+            self.exportVars()
+            return
+            
+        self.config = c.users[self.username]
+        for key in self.config:
+            if not key in self.configVars: continue
+            if self.config[key] == 'True':
+                self.config.__dict__[key] = True
+            elif self.config[key] == 'False':
+                self.config.__dict__[key] = False
+            setattr(self, key, self.config.__dict__[key])
+        
     
     def getPage(self, url, postData = None, vars = None, usePin = False):
         # If using a referer is desired and one has not already been supplied, 
@@ -143,10 +167,10 @@ class User:
                 # All forms that require a pin share the same variable name of 'pin'
                 postData['pin'] = str(self.pin)
         
-        if self.browserSync:
+        if bool(self.browserSync):
             self.__syncCookies()
         
-        pg = Page(url, self.cookieJar, postData, vars, self.proxy)
+        pg = Page(url, self.session, postData, vars, self.proxy)
         self.cookieJar = pg.cookies
         
         if self.browserSync:
@@ -159,3 +183,6 @@ class User:
             for hook in self.hooks:
                 self, pg = hook(self, pg)
         return pg        
+        
+    def __str__(self):
+        return self.username

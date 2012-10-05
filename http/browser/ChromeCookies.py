@@ -5,11 +5,11 @@
 .. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
 """
 
-from neolib.http.Cookie import Cookie
 from sqlite3 import dbapi2 as sqlite
-from neolib.http.CookieJar import CookieJar
 from neolib.http.browser.BrowserCookies import BrowserCookies
 import datetime
+import requests
+import calendar
 import logging
 import time
 import pytz
@@ -65,6 +65,7 @@ class ChromeCookies(BrowserCookies):
            CookieJar or bool - If failed, returns False, otherwise returns CookieJar
         """
         try:
+            cj = requests.cookies.RequestsCookieJar()
             path = ChromeCookies._getPath()
             results = []
             with sqlite.connect(path, timeout=0.1) as conn:
@@ -75,19 +76,16 @@ class ChromeCookies(BrowserCookies):
             if not results:
                 raise noCookiesForDomain
             
-            cookies = []
-            expire = datetime.datetime.now() + datetime.timedelta(365)
             for result in results:
                 if not result[3]:
                     expire = datetime.datetime.now() + datetime.timedelta(365)
                 else:
-                    epoch = datetime.datetime(1601, 1, 1, tzinfo=pytz.UTC)
+                    epoch = datetime.datetime(1601, 1, 1)
                     expire = epoch + datetime.timedelta(microseconds=result[3])
                 
-                cookies.append(Cookie(result[0], result[1], expire, domain, result[2]))
-            
-            cj = CookieJar()
-            cj.addCookies(domain, cookies)
+                expire = calendar.timegm(expire.utctimetuple())
+                cargs = {'expires': expire, 'domain': domain, 'path': result[2]}
+                cj.set(result[0], result[1], **cargs)
         
             return cj
         except Exception as e:
@@ -104,7 +102,7 @@ class ChromeCookies(BrowserCookies):
                 
                 for cookie in cookieJar.getCookies(domain):
                     now = int(round(time.time(), 0)) * 10000000
-                    expires = int(time.mktime(cookie.expires.timetuple())) * 10000000
+                    expires = int(time.mktime(datetime.datetime.utcfromtimestamp(cookie.expires).timetuple())) * 10000000
                     sql = "insert into cookies (host_key, path, secure, expires_utc, name, value, last_access_utc, httponly) VALUES('%s','%s',0,%d,'%s','%s',%d,0)" % (domain, cookie.path, expires, cookie.name, cookie.value, now)
                     
                     cursor.execute(sql)

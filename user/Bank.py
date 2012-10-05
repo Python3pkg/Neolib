@@ -41,7 +41,7 @@ class Bank:
         # Checks if interest has been collected
         if pg.content.find("not be able to collect") == -1 and pg.content.find("have already collected") == -1:
             try:
-                self.dailyInterest = pg.find_all("td", "contentModuleHeaderAlt")[2].parent.parent.input['value'].split("(")[1].replace(" NP)", "")
+                self.dailyInterest = pg.find("input", {'value': 'interest'}).find_next_sibling('input')['value'].split("(")[1].split(" NP)")[0]
                 self.collectedInterest = False
             except Exception:
                 logging.getLogger("neolib.user").exception("Could not parse user's bank daily interest.")
@@ -58,7 +58,7 @@ class Bank:
         pg = self.owner.getPage("http://www.neopets.com/process_bank.phtml", {'type': 'deposit', 'amount': str(amount)})
         
         # Success redirects to bank page
-        if pg.header.vars['Location'].find("bank.phtml") != -1:
+        if pg.content.find("It's great to see you again") != -1:
             return True
         else:
             logging.getLogger("neolib.user").info("Failed to deposit NPs for unknown reason. User NPs: " + str(self.owner.nps) + ". Amount: " + str(amount))
@@ -83,7 +83,7 @@ class Bank:
         pg = self.owner.getPage("http://www.neopets.com/process_bank.phtml", {'type': 'withdraw', 'amount': str(amount)}, usePin = True)
         
         # Success redirects to bank page
-        if pg.header.vars['Location'].find("bank.phtml") != -1:
+        if pg.content.find("It's great to see you again") != -1:
             return True
         else:
             logging.getLogger("neolib.user").info("Failed to withdraw NPs for unknown reason. User NPs: " + str(self.owner.nps) + ". Amount: " + str(amount))
@@ -100,7 +100,7 @@ class Bank:
         pg = usr.getPage("http://www.neopets.com/process_bank.phtml", {'type': 'interest'})
         
         # Success redirects to bank page
-        if pg.header.vars['Location'].find("bank.phtml") != -1:
+        if pg.content.find("It's great to see you again") != -1:
             return True
         else:
             logging.getLogger("neolib.user").info("Failed to collect daily interest for unknown reason.")

@@ -28,13 +28,8 @@ class SDB:
                 pg = self.usr.getPage("http://www.neopets.com/process_safetydeposit.phtml?checksub=scan", postData, {'Referer': ref}, True)
                 
                 # Success redirects to SDB page
-                if "Location" in pg.header.vars:
-                    if pg.header.vars['Location'].find("safetydeposit.phtml") != -1:
-                        return True
-                    else:
-                        logging.getLogger("neolib.shop").exception("Could not verify if SDB inventory was updated.")
-                        logging.getLogger("neolib.html").info("Could not verify if SDB inventory was updated.", {'pg': pg})
-                        return False
+                if pg.content.find("Your Safety Deposit Box") != -1:
+                    return True
                 else:
                     logging.getLogger("neolib.shop").exception("Could not verify if SDB inventory was updated.")
                     logging.getLogger("neolib.html").info("Could not verify if SDB inventory was updated.", {'pg': pg})

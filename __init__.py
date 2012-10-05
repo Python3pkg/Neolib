@@ -1,8 +1,7 @@
 import logging
 from datetime import datetime
-from HTMLHandler import HTMLHandler
-from HTMLFilter import HTMLFilter
-from config.Config import Config
+from neolib.HTMLHandler import HTMLHandler
+from neolib.HTMLFilter import HTMLFilter
 
 # Intention of this file is to setup logging whenever the library is initialized.
 

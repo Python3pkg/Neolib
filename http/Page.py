@@ -5,9 +5,9 @@
 .. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
 """
 
-from neolib.exceptions import HTTPException
-from HTTPWrapper import HTTPWrapper
+#from Configuration import Configuration
 from bs4 import BeautifulSoup
+import requests
 
 class Page(BeautifulSoup):
     
@@ -57,17 +57,20 @@ class Page(BeautifulSoup):
     
     _wrapper = None
     
-    cookies = None
-    reqHeader = None    
+    resp = None
+    request = None
     header = None
     content = ""
     
     url = ""
-    intCookies = None
     postData = None
     vars = None
     
-    def __init__(self, url, cookies=None, postData=None, vars=None, proxy=None):
+    _defaultVars = {"USER-AGENT": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:14.0) Gecko/20100101 Firefox/14.0.1",
+                   "ACCEPT": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                   "ACCEPT-LANGUAGE": "en-us,en;q=0.5"}
+    
+    def __init__(self, url, session=None, postData=None, vars=None, proxy=None):
         """ Requests a remote document and initializes Page with the data
         
         Initiates it's own instance of HTTPWrapper and requests a remote document using the
@@ -75,7 +78,28 @@ class Page(BeautifulSoup):
         the parent class, BeautifulSoup. 
         """
         
-        if not self._wrapper:
+        self.url = url
+        self.postData = postData
+        self.vars = vars
+        
+        if not session:
+            if postData:
+                r = requests.post(url, data=postData, headers=vars, proxies=proxy)
+            else:
+                r = requests.get(url, headers=vars, proxies=proxy)
+        else:
+            if postData:
+                r = session.post(url, data=postData, headers=vars, proxies=proxy)
+            else:
+                r = session.get(url, headers=vars, proxies=proxy)
+        
+        self.resp = r
+        self.request = r.request
+        self.header = r.headers
+        self.content = r.text
+        
+        BeautifulSoup.__init__(self, self.content)
+        """if not self._wrapper:
             self._wrapper = HTTPWrapper()
             
         self.url = url
@@ -99,7 +123,7 @@ class Page(BeautifulSoup):
         self.reqHeader = self._wrapper.reqHeader
         self.cookies = self._wrapper.cookieJar
         
-        BeautifulSoup.__init__(self, self.content)
+        BeautifulSoup.__init__(self, self.content)"""
     
     def imageToFile(self, url, localfile):
         """ Downloads an image to a local file, returns if it was sucessful or not
@@ -119,6 +143,19 @@ class Page(BeautifulSoup):
         """
         # Failure to set binary to true will most likely cause a corrupted image file
         return self._wrapper.downloadFile("GET", url, localfile, binary = True)
+    
+    
+    @staticmethod
+    def newSession():
+        from neolib.config.Configuration import Configuration
         
-    def __bool__(self):
-        return self.content
+        s = requests.session()
+        if not Configuration.loaded():
+            if not Configuration.initialize():
+                s.config['base_headers'].update(Page._defaultVars)
+            else:
+                s.config['base_headers'].update(Configuration.getConfig().core.HTTPHeaders.toDict())
+        else:
+            s.config['base_headers'].update(Configuration.getConfig().core.HTTPHeaders.toDict())
+        
+        return requests.session()

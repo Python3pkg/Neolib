@@ -1,1 +1,1 @@
-from ChromeCookies import ChromeCookies
+from neolib.http.browser.ChromeCookies import ChromeCookies

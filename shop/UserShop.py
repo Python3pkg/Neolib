@@ -120,13 +120,8 @@ class UserShop:
                 pg = self.usr.getPage("http://www.neopets.com/process_market.phtml", postData, {'Referer': ref}, True)
                 
                 # If successful redirects to shop
-                if "Location" in pg.header.vars:
-                    if pg.header.vars['Location'].find("market.phtml") != -1:
-                        return True
-                    else:
-                        logging.getLogger("neolib.shop").exception("Could not verify if prices were updated on user shop.")
-                        logging.getLogger("neolib.html").info("Could not verify if prices were updated on user shop.", {'pg': pg})
-                        return False
+                if pg.content.find("The Marketplace") != -1:
+                    return True
                 else:
                     logging.getLogger("neolib.shop").exception("Could not verify if prices were updated on user shop.")
                     logging.getLogger("neolib.html").info("Could not verify if prices were updated on user shop.", {'pg': pg})

@@ -39,28 +39,27 @@ def updatePet(usr, pg):
     return [usr, pg]
         
 def autoLogin(usr, pg):
-    if "Location" in pg.header.vars:
-        if pg.header.vars['Location'].find("loginpage.phtml") != -1:
-            # If auto login is enabled, try to log back in, otherwise raise an exception to let higher processes know the user is logged out.
-            if usr.autoLogin:
-                # Clear cookies
-                usr.cookieJar = None
-                if usr.login():
-                    # Update status
-                    usr.loggedIn = True
-                        
-                    # Request the page again now that the user is logged in
-                    pg = Page(pg.url, usr.cookieJar, pg.postData, pg.vars)
-                else:
-                    # Failed to login. Update status, log it, and raise an exception
-                    usr.loggedIn = False
-                    logging.getLogger("neolib.user").info("User was logged out. Failed to log back in.")
-                    raise logoutException
+    if pg.title == "Neopets - Hi!":
+        # If auto login is enabled, try to log back in, otherwise raise an exception to let higher processes know the user is logged out.
+        if usr.autoLogin:
+            # Clear cookies
+            usr.session = Page.newSession()
+            if usr.login():
+                # Update status
+                usr.loggedIn = True
+                    
+                # Request the page again now that the user is logged in
+                pg = Page(pg.url, usr.cookieJar, pg.postData, pg.vars)
             else:
-                # Auto login is not enabled. Update status and raise an exception.
+                # Failed to login. Update status, log it, and raise an exception
                 usr.loggedIn = False
-                logging.getLogger("neolib.user").info("User was logged out. Auto login is disabled.")
+                logging.getLogger("neolib.user").info("User was logged out. Failed to log back in.")
                 raise logoutException
+        else:
+            # Auto login is not enabled. Update status and raise an exception.
+            usr.loggedIn = False
+            logging.getLogger("neolib.user").info("User was logged out. Auto login is disabled.")
+            raise logoutException
         
     return [usr, pg]
     
