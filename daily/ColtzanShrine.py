@@ -25,11 +25,11 @@ class ColtzanShrine(Daily):
         pg = self.player.getPage("http://www.neopets.com/desert/shrine.phtml", {'type': 'approach'})
         
         # Ensure daily not previously completed
-        if pg.content.find("wait a while before visiting") != -1:
+        if "wait a while before visiting" in pg.content:
             raise dailyAlreadyDone
         
         # See if we won anything
-        if pg.content.find("http://images.neopets.com/desert/shrine_win.gif") == -1:
+        if not "http://images.neopets.com/desert/shrine_win.gif" in pg.content:
             return
         
         try:

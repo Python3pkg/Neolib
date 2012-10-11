@@ -62,7 +62,7 @@ class SDBInventory(Inventory):
         
         pages = None
         # Check if multiple pages exist
-        if pg.content.find("<option value='30'>") != -1:
+        if "<option value='30'>" in pg.content:
             pages = pg.find_all("select")[1].find_all("option")
             
             # Knock off the first page
@@ -84,7 +84,7 @@ class SDBInventory(Inventory):
                 pg = usr.getPage("http://www.neopets.com/safetydeposit.phtml?offset=" + page['value'])
                 
                 # Ensure there's items on the page
-                if pg.content.find("End of results reached") != -1:
+                if "End of results reached" in pg.content:
                     continue
                 
                 try:

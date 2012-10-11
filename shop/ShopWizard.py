@@ -4,6 +4,7 @@ from neolib.exceptions import parseException
 from neolib.exceptions import shopWizBanned
 from neolib.exceptions import activeQuest
 from neolib.exceptions import invalidMethod
+from neolib.inventory.ShopWizardResult import ShopWizardResult
 from neolib.item.Item import Item
 import logging
 import time
@@ -20,7 +21,9 @@ class ShopWizard:
     LOWDEDUCT = "LOWDEDUCT"
     AVGDEDUCT = "AVGDEDUCT"
     LOW = "LOW"
-    RETLOW = ""
+    RETLOW = "RETLOW"
+    
+    methods = ['AVERAGE', 'LOWDEDUCT', 'AVGDEDUCT', 'LOW', 'RETLOW']
     
     waitTime = 5
     
@@ -52,48 +55,30 @@ class ShopWizard:
         pg = usr.getPage("http://www.neopets.com/market.phtml", post, {'Referer': 'http://www.neopets.com/market.phtml'})
         
         # Indicates shop wizard banned
-        if pg.content.find("Whoa there") != -1:
+        if "too many searches" in pg.content:
             time = pg.find("b", text = "Whoa there, too many searches!").parent.p.b.text
             e = shopWizBanned()
             e.time = time
             raise e
             
         # Indicates a faerie quest
-        if pg.content.find("You're working for a faerie") != -1:
+        if "You're working for a faerie" in pg.content:
             logging.getLogger("neolib.shop").info("Could not search for " + text + ". A Faerie quest is active")
             raise activeQuest
             
-        if pg.content.find("did not find") != -1:
-            if pg.content.find(text) != -1:
+        if "did not find" in pg.content:
+            if text in pg.content:
                 return False # Indicates UB item
-            elif pg.content.find("...</span>") != -1:
+            elif "...</span>" in pg.content:
                 # Probably invalid item
                 raise invalidSearch
-        
-        try:
-            items = pg.find("td", "contentModuleHeaderAlt").parent.parent.find_all("tr")
-            items.pop(0)
             
-            results = []
-            for item in items:
-                tmpItem = Item(item.find_all("td")[1].text)
-                
-                tmpItem.owner = item.td.a.text
-                tmpItem.location = item.td.a['href']
-                tmpItem.stock = item.find_all("td")[2].text
-                tmpItem.price = item.find_all("td")[3].text.replace(" NP", "").replace(",", "")
-                tmpItem.id = tmpItem.location.split("buy_obj_info_id=")[1].split("&")[0]
-                
-                results.append(tmpItem)
-        except Exception:
-            logging.getLogger("neolib.shop").exception("Unable to parse shop wizard results.")
-            logging.getLogger("neolib.html").info("Unable to parse shop wizard results.", {'pg': pg})
-            raise parseException
-            
-        return results
+        return ShopWizardResult(pg, usr)
         
     @staticmethod
-    def priceItem(usr, item, searches, method = "AVERAGE", deduct = 0):
+    def price(usr, item, searches = 2, method = "AVERAGE", deduct = 0):
+        if not method in ShopWizard.methods: raise invalidMethod()
+        
         prices = []
         dets = {}
         for x in range(0, searches):
@@ -113,16 +98,16 @@ class ShopWizard:
         if sum(prices) == len(prices) * -1:
             return False
             
-        prices = filter(lambda x: x != -1, prices)
+        prices = list(filter(lambda x: x != -1, prices))
             
         if method == ShopWizard.RETLOW:
             price = sorted(prices)[0]
             return (price, dets[str(price)][0], dets[str(price)][1])
             
-        return ShopWizard.__determinePrice(prices, method)
+        return ShopWizard.__determinePrice(prices, method, deduct)
         
     @staticmethod
-    def __determinePrice(prices, method):
+    def __determinePrice(prices, method, deduct):
         price = 1
         if method == ShopWizard.AVERAGE:
             price = int(sum(prices) / len(prices))

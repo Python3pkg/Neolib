@@ -19,7 +19,7 @@ class Obsidian(Daily):
         pg = self.player.getPage("http://www.neopets.com/magma/quarry.phtml")
         
         # Check if we got something
-        if pg.content.find("has been added") != -1:
+        if "has been added" in pg.content:
             self.win = True
         else:
             self.win = False

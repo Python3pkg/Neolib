@@ -22,7 +22,7 @@ class Anchor(Daily):
         pg = self.player.getPage("http://www.neopets.com/pirates/anchormanagement.phtml")
         
         # Ensure daily not previously completed
-        if pg.content.find("already done your share") != -1:
+        if "already done your share" in pg.content:
             raise dailyAlreadyDone
         
         # Parse form value
@@ -32,7 +32,7 @@ class Anchor(Daily):
         pg = self.player.getPage("http://www.neopets.com/pirates/anchormanagement.phtml", {'action': action})
         
         # See if we got something
-        if pg.content.find("left you a memento"):
+        if "left you a memento" in pg.content:
             try:
                 # Parse the prize
                 self.prize = pg.find("span", "prize-item-name").text

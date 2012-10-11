@@ -22,7 +22,7 @@ class ShopOfOffers(Daily):
         pg = self.player.getPage("http://www.neopets.com/shop_of_offers.phtml?slorg_payout=yes")
         
         # Check if we got something
-        if pg.content.find("Something has happened!") != -1:
+        if "Something has happened!" in pg.content:
             try:
                 # Parse nps
                 self.nps = pg.find("td", text = "Something has happened!").find_next("td", width="320").strong.text

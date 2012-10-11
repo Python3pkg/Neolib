@@ -47,6 +47,12 @@ class User:
         self.password = password
         self.pin = pin
         
+        # Initialize
+        self.inventory = UserInventory(self)
+        self.shop = UserShop(self)
+        self.bank = Bank(self)
+        self.SDB = SDB(self)
+        
         # Each User instance needs a unique session
         self.session = Page.newSession()
         
@@ -67,41 +73,17 @@ class User:
         pg = self.getPage("http://www.neopets.com/login.phtml", {'username': self.username, 'password': self.password, 'destination': '/index.phtml'})
         
         # Index page should contain the username if successfully logged in
-        if pg.content.find(self.username) != -1:
+        if self.username in pg.content:
             self.loggedIn = True
             return True
         else:
             return False
-            
-    def loadInventory(self):
-        self.inventory = UserInventory(self)
-        
-    def loadBank(self):
-        self.bank = Bank(self)
-        
-    def loadShop(self):
-        self.shop = UserShop(self)
-        self.shop.loadInventory()
-        
-    def loadSDB(self):
-        self.SDB = SDB(self)
-        self.SDB.loadInventory()
     
     def addHook(self, hook):
         self.hooks.append(hook)
         
     def setRandomEventCallback(self, cb):
         self.RECallback = cb
-    
-    def updateNps(self, pg = None):
-        # If no page is supplied, just load the index
-        if not pg:
-            pg = self.getPage("http://www.neopets.com/index.phtml")
-            
-        self.nps = int( pg.find("a", id = "npanchor").text.replace(",", "") )
-    
-    def setProxy(self, proxy):
-        self.proxy = proxy
     
     def syncWithBrowser(self, browser):
         BrowserCookies.loadBrowsers()
@@ -176,7 +158,7 @@ class User:
         if self.browserSync:
             self.__writeCookies()
         
-        if pg.content.find("http://images.neopets.com/homepage/indexbak_oops_en.png") != -1:
+        if "http://images.neopets.com/homepage/indexbak_oops_en.png" in pg.content:
             raise neopetsOfflineException
         
         if self.useHooks:

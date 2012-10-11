@@ -68,18 +68,18 @@ class UserShopFrontInventory(Inventory):
             pg = usr.getPage("http://www.neopets.com/browseshop.phtml?owner=" + owner)
         
         # Checks for empty or invalid shop
-        if pg.content.find("doesn't have a shop") != -1:
+        if "doesn't have a shop" in pg.content:
             raise invalidShop
-        elif pg.content.find("not a valid shop") != -1:
+        elif "not a valid shop" in pg.content:
             raise invalidShop
-        elif pg.content.find("has changed price") != -1:
+        elif "has changed price" in pg.content:
             raise invalidShop
-        elif pg.content.find("no items for sale") != -1:
+        elif "no items for sale" in pg.content:
             return
         
         try:
             # If we were searching for an item, and it's not been bought, parse it first
-            if objID and pg.content.find("Item not found!") == -1:
+            if objID and not "Item not found!" in pg.content:
                 self._parseMainItem(pg, usr, owner)
                     
                 # Required to properly parse the rest of the inventory

@@ -26,18 +26,18 @@ class UserShopFront:
         self.objID = objID
         self.price = price
         
-    def loadInventory(self):
+    def load(self):
         self.inventory = UserShopFrontInventory(self.usr, self.owner, self.objID, self.price)
         
     def populate(self):
         pg = self.usr.getPage("http://www.neopets.com/browseshop.phtml?owner=" + self.owner)
         
         # Checks for valid shop
-        if pg.content.find("doesn't have a shop") != -1:
+        if "doesn't have a shop" in pg.content:
             raise invalidShop
-        elif pg.content.find("not a valid shop") != -1:
+        elif "not a valid shop" in pg.content:
             raise invalidShop
-        elif pg.content.find("no items for sale") != -1:
+        elif "no items for sale" in pg.content:
             self.empty = True
             return
             

@@ -63,7 +63,7 @@ class Blowfish:
             as the encryption key. Key is a string of
             length ranging from 8 to 56 bytes (64 to 448
             bits). Once the instance of the object is
-            created, the key is no longer necessary.
+            created, the key is no inter necessary.
 
         def encrypt (self, data):
             Encrypt an 8 byte (64-bit) block of text
@@ -102,7 +102,7 @@ class Blowfish:
             Performs an obscuring function on the 32-bit
             block of data 'xl', which is the left half of
             the 64-bit block of data. Returns the 32-bit
-            result as a long integer.
+            result as a int integer.
 
     """
 
@@ -111,13 +111,13 @@ class Blowfish:
     DECRYPT = 1
 
     # For the __round_func
-    modulus = long (2) ** 32
+    modulus = int (2) ** 32
 
     def __init__ (self, key):
 
         if not key or len (key) < 8 or len (key) > 56:
-            raise RuntimeError, "Attempted to initialize Blowfish cipher with key of invalid length: %s" %len (key)
-
+            raise RuntimeError("Attempted to initialize Blowfish cipher with key of invalid length: %s" %len (key))
+            
         self.p_boxes = [
             0x243F6A88, 0x85A308D3, 0x13198A2E, 0x03707344,
             0xA4093822, 0x299F31D0, 0x082EFA98, 0xEC4E6C89,
@@ -451,11 +451,11 @@ class Blowfish:
         c = (xl & 0x0000FF00) >> 8
         d = xl & 0x000000FF
 
-        # Perform all ops as longs then and out the last 32-bits to
+        # Perform all ops as ints then and out the last 32-bits to
         # obtain the integer
-        f = (long (self.s_boxes[0][a]) + long (self.s_boxes[1][b])) % self.modulus
-        f = f ^ long (self.s_boxes[2][c])
-        f = f + long (self.s_boxes[3][d])
+        f = (int (self.s_boxes[0][a]) + int (self.s_boxes[1][b])) % self.modulus
+        f = f ^ int (self.s_boxes[2][c])
+        f = f + int (self.s_boxes[3][d])
         f = (f % self.modulus) & 0xFFFFFFFF
 
         return f
@@ -463,7 +463,7 @@ class Blowfish:
 
     def encrypt (self, data):
         if not len (data) == 8:
-            raise RuntimeError, "Attempted to encrypt data of invalid block length: %s" %len (data)
+            raise RuntimeError("Attempted to encrypt data of invalid block length: %s" %len (data))
 
         # Use big endianess since that's what everyone else uses
         xl = ord (data[3]) | (ord (data[2]) << 8) | (ord (data[1]) << 16) | (ord (data[0]) << 24)
@@ -479,7 +479,7 @@ class Blowfish:
 
     def decrypt (self, data):
         if not len (data) == 8:
-            raise RuntimeError, "Attempted to encrypt data of invalid block length: %s" %len (data)
+            raise RuntimeError("Attempted to encrypt data of invalid block length: %s" %len (data))
 
         # Use big endianess since that's what everyone else uses
         cl = ord (data[3]) | (ord (data[2]) << 8) | (ord (data[1]) << 16) | (ord (data[0]) << 24)
@@ -519,11 +519,11 @@ class Blowfish:
     def encryptCTR(self, data):
         """
         Encrypts a buffer of data with CTR mode. Multiple successive buffers
-        (belonging to the same logical stream of buffers) can be encrypted
+        (beinting to the same logical stream of buffers) can be encrypted
         with this method one after the other without any intermediate work.
         """
         if type(data) != types.StringType:
-            raise RuntimeException, "Can only work on 8-bit strings"
+            raise RuntimeException("Can only work on 8-bit strings")
         result = []
         for ch in data:
             result.append(chr(ord(ch) ^ self._nextCTRByte()))

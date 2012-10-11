@@ -25,15 +25,15 @@ class Tombola(Daily):
 	    
         pg = self.player.getPage("http://www.neopets.com/island/tombola2.phtml", {'submit': 'play'})
         
-        if pg.content.find("only allowed one") != -1:
+        if "only allowed one" in pg.content:
 			raise dailyAlreadyDone()
         
         # Indicates no prizes
-        if pg.content.find("don't even get a booby prize") != -1:
+        if "don't even get a booby prize" in pg.content:
 			return
 		
         # The content layout will be different if the user won.
-        if pg.content.find("YOU ARE A WINNER")!= -1:
+        if "YOU ARE A WINNER" in pg.content:
             try:
                 panel = pg.find("b", text="Tiki Tack Tombola").parent
                 
@@ -67,10 +67,10 @@ class Tombola(Daily):
                 logging.getLogger("neolib.html").info("Could not parse Tombola daily.", {'pg': pg})
                 raise parseException
             
-        if pg.content.find("feeling sorry for you") != -1:
+        if "feeling sorry for you" in pg.content:
             self.nps = panel.find_all("p")[-1].b.text + " NPS"
         
-        if pg.content.find("not a winning ticket") != -1:
+        if "not a winning ticket" in pg.content:
             self.booby = True
 			
         self.win = True

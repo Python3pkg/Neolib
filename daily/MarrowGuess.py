@@ -29,14 +29,14 @@ class MarrowGuess(Daily):
         pg = self.player.getPage("http://www.neopets.com/medieval/guessmarrow.phtml")
         
         # Ensure we can guess
-        if pg.content.find("enter your value as an integer") == -1:
+        if not "enter your value as an integer" in pg.content:
             raise marrowNotAvailable
             
         # Process daily
         pg = self.player.getPage("http://www.neopets.com/medieval/process_guessmarrow.phtml", {'guess': str(pounds)})
         
         # Check if we got it right
-        if pg.content.find("WRONG!") != -1:
+        if "WRONG!" in pg.content:
             return
             
         # NOTE: This daily is still under development

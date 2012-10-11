@@ -13,7 +13,7 @@ class SDB:
             
         self.usr = usr
         
-    def loadInventory(self):
+    def load(self):
         self.inventory = SDBInventory(self.usr)
         
     def updateSDB(self):
@@ -28,7 +28,7 @@ class SDB:
                 pg = self.usr.getPage("http://www.neopets.com/process_safetydeposit.phtml?checksub=scan", postData, {'Referer': ref}, True)
                 
                 # Success redirects to SDB page
-                if pg.content.find("Your Safety Deposit Box") != -1:
+                if "Your Safety Deposit Box" in pg.content:
                     return True
                 else:
                     logging.getLogger("neolib.shop").exception("Could not verify if SDB inventory was updated.")

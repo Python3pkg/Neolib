@@ -25,7 +25,7 @@ class PetPetPark(Daily):
         pg = self.player.getPage("http://www.neopets.com/petpetpark/daily.phtml", {'go': '1'})
         
         # Ensure daily not previously completed
-        if pg.content.find("already collected your prize") != -1:
+        if "already collected your prize" in pg.content:
             raise dailyAlreadyDone
         
         try:

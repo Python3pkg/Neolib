@@ -5,7 +5,7 @@ import logging
 
 class Bank:
     
-    owner = None
+    usr = None
     type = ""
     balance = ""
     yearlyInterest = ""
@@ -17,11 +17,13 @@ class Bank:
         if not usr:
             return
             
-        self.owner = usr
-        pg = usr.getPage("http://www.neopets.com/bank.phtml")
+        self.usr = usr
+            
+    def load(self):
+        pg = self.usr.getPage("http://www.neopets.com/bank.phtml")
         
         # Verifies account exists
-        if not pg.content.find("great to see you again"):
+        if not "great to see you again" in pg.content:
             logging.getLogger("neolib.user").info("Could not load user's bank. Most likely does not have an account.")
             logging.getLogger("neolib.html").info("Could not load user's bank. Most likely does not have an account.", {'pg': pg})
             raise noBankAcct
@@ -39,7 +41,7 @@ class Bank:
             raise parseException
         
         # Checks if interest has been collected
-        if pg.content.find("not be able to collect") == -1 and pg.content.find("have already collected") == -1:
+        if not "not be able to collect" in pg.content and not "have already collected" in page.content:
             try:
                 self.dailyInterest = pg.find("input", {'value': 'interest'}).find_next_sibling('input')['value'].split("(")[1].split(" NP)")[0]
                 self.collectedInterest = False
@@ -47,28 +49,27 @@ class Bank:
                 logging.getLogger("neolib.user").exception("Could not parse user's bank daily interest.")
                 logging.getLogger("neolib.html").info("Could not parse user's bank daily interest.", {'pg': pg})
                 raise parseException
-            
     
     def deposit(self, amount):
-        pg = self.owner.getPage("http://www.neopets.com/bank.phtml")
+        pg = self.usr.getPage("http://www.neopets.com/bank.phtml")
         
-        if self.owner.nps < int(amount):
+        if self.usr.nps < int(amount):
             raise notEnoughNps
             
-        pg = self.owner.getPage("http://www.neopets.com/process_bank.phtml", {'type': 'deposit', 'amount': str(amount)})
+        pg = self.usr.getPage("http://www.neopets.com/process_bank.phtml", {'type': 'deposit', 'amount': str(amount)})
         
         # Success redirects to bank page
-        if pg.content.find("It's great to see you again") != -1:
+        if "It's great to see you again" in pg.content:
             return True
         else:
-            logging.getLogger("neolib.user").info("Failed to deposit NPs for unknown reason. User NPs: " + str(self.owner.nps) + ". Amount: " + str(amount))
+            logging.getLogger("neolib.user").info("Failed to deposit NPs for unknown reason. User NPs: " + str(self.usr.nps) + ". Amount: " + str(amount))
             logging.getLogger("neolib.html").info("Failed to deposit NPs for unknown reason.", {'pg': pg})
             return False
         
         self.updateBalance()
             
     def withdraw(self, amount):
-        pg = self.owner.getPage("http://www.neopets.com/bank.phtml")
+        pg = self.usr.getPage("http://www.neopets.com/bank.phtml")
         
         try:
             results = pg.find(text = "Account Type:").parent.parent.parent.find_all("td", align="center")
@@ -80,13 +81,13 @@ class Bank:
         if int(amount) > int(self.balance.replace(",", "")):
             raise notEnoughBalance
             
-        pg = self.owner.getPage("http://www.neopets.com/process_bank.phtml", {'type': 'withdraw', 'amount': str(amount)}, usePin = True)
+        pg = self.usr.getPage("http://www.neopets.com/process_bank.phtml", {'type': 'withdraw', 'amount': str(amount)}, usePin = True)
         
         # Success redirects to bank page
-        if pg.content.find("It's great to see you again") != -1:
+        if "It's great to see you again" in pg.content:
             return True
         else:
-            logging.getLogger("neolib.user").info("Failed to withdraw NPs for unknown reason. User NPs: " + str(self.owner.nps) + ". Amount: " + str(amount))
+            logging.getLogger("neolib.user").info("Failed to withdraw NPs for unknown reason. User NPs: " + str(self.usr.nps) + ". Amount: " + str(amount))
             logging.getLogger("neolib.html").info("Failed to withdraw NPs for unknown reason.", {'pg': pg})
             return False
         
@@ -96,11 +97,11 @@ class Bank:
         if self.collectedInterest:
             return False
             
-        pg = usr.getPage("http://www.neopets.com/bank.phtml")
-        pg = usr.getPage("http://www.neopets.com/process_bank.phtml", {'type': 'interest'})
+        pg = self.usr.getPage("http://www.neopets.com/bank.phtml")
+        pg = self.usr.getPage("http://www.neopets.com/process_bank.phtml", {'type': 'interest'})
         
         # Success redirects to bank page
-        if pg.content.find("It's great to see you again") != -1:
+        if "It's great to see you again" in pg.content:
             return True
         else:
             logging.getLogger("neolib.user").info("Failed to collect daily interest for unknown reason.")
@@ -109,7 +110,7 @@ class Bank:
         
         
     def updateBalance(self):
-        pg = self.owner.getPage("http://www.neopets.com/bank.phtml")
+        pg = self.usr.getPage("http://www.neopets.com/bank.phtml")
         
         try:
             results = pg.find(text = "Account Type:").parent.parent.parent.find_all("td", align="center")

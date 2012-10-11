@@ -18,11 +18,27 @@ class UserInventory(Inventory):
     Sub-classes the Inventory class to provide an interface for a user's
     inventory. Will automatically populate itself with all items
     in a user's inventory upon initialization.
-       
-    Initialization
-       UserInventory(usr)
-       
-       Loads a user's inventory
+        
+    Example
+       >>> usr.loadInventory
+       >>> for item in usr.inventory:
+       ...     print item.name
+       Blue Kougra Plushie
+       Lu Codestone
+       ...
+    """
+     
+    usr = None
+     
+    def __init__(self, usr):
+        if not usr:
+            raise invalidUser
+            
+        self.usr = usr
+            
+
+    def load(self):
+        """Loads a user's inventory
        
        Queries the user's inventory, parses each item, and adds 
        each item to the inventory. Note this class should not be 
@@ -35,25 +51,12 @@ class UserInventory(Inventory):
        Raises
           invalidUser
           parseException
-        
-    Example
-       >>> usr.loadInventory
-       >>> for item in usr.inventory:
-       ...     print item.name
-       Blue Kougra Plushie
-       Lu Codestone
-       ...
-    """
-     
-    def __init__(self, usr):
-        if not usr:
-            raise invalidUser
-            
+        """
         self.items = {}
-        pg = usr.getPage("http://www.neopets.com/objects.phtml?type=inventory")
+        pg = self.usr.getPage("http://www.neopets.com/objects.phtml?type=inventory")
         
         # Indicates an empty inventory
-        if pg.content.find("You aren't carrying anything") != -1:
+        if "You aren't carrying anything" in pg.content:
             return
         
         try:
@@ -62,14 +65,14 @@ class UserInventory(Inventory):
                     name = item.text
                     
                     # Some item names contain extra information encapsulated in paranthesis
-                    if name.find("(") != -1:
+                    if "(" in name:
                         name = name.split("(")[0]
                     
                     tmpItem = Item(name)
                     tmpItem.id = item.a['onclick'].split("(")[1].replace(");", "")
                     tmpItem.img = item.img['src']
                     tmpItem.desc = item.img['alt']
-                    tmpItem.usr = usr
+                    tmpItem.usr = self.usr
                     
                     self.items[name] = tmpItem
         except Exception:

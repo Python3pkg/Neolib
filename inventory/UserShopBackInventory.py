@@ -64,7 +64,7 @@ class UserShopBackInventory(Inventory):
         
         pages = None
         # Checks if multiple pages exist
-        if pg.content.find("[1-30]") != -1:
+        if "[1-30]" in pg.content:
             pages = pg.find("a", text = "[1-30]").parent.find_all("a")
             
             # The first link is a "Sort by ID" link, the second one is the first page

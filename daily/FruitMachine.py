@@ -22,7 +22,7 @@ class FruitMachine(Daily):
         pg = self.player.getPage("http://www.neopets.com/desert/fruit/index.phtml")
         
         # Ensure daily not previously completed
-        if pg.content.find("already had your free spin") != -1:
+        if "already had your free spin" in pg.content:
             raise dailyAlreadyDone
         
         # Parse form values
@@ -33,7 +33,7 @@ class FruitMachine(Daily):
         pg = self.player.getPage("http://www.neopets.com/desert/fruit/index.phtml", {'spin': spin, 'ck': ck})
         
         # Check if we won
-        if pg.content.find("this is not a winning spin") != -1:
+        if "this is not a winning spin" in pg.content:
             return
             
         try:
@@ -42,7 +42,7 @@ class FruitMachine(Daily):
             self.nps = pg.find("div", id="fruitResult").span.b.text
             
             # Check if we have an additional prize
-            if pg.content.find("You also win") != -1:
+            if "You also win" in pg.content:
                 # Parse the prize item name and image
                 self.prize = pg.find("td", "prizeCell").img.b.text
                 self.img = pg.find("td", "prizeCell").img['src']

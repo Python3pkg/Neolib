@@ -25,7 +25,7 @@ class GiantJelly(Daily):
         pg = self.player.getPage("http://www.neopets.com/jelly/jelly.phtml", {'type': 'get_jelly'})
         
         # Ensure daily not previously completed
-        if pg.content.find("NO!") != -1:
+        if "NO!" in pg.content:
             raise dailyAlreadyDone
         
         # Parse prize

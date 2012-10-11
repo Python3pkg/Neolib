@@ -1,6 +1,6 @@
 from neolib.neocodex.blowfish import Blowfish
+import requests
 import urllib
-import urllib2
 import random
 import json
 
@@ -37,12 +37,6 @@ class CodexAPI:
         
     @staticmethod
     def _callAPI(data):
-        if not isinstance(data, dict):
-            raise TypeError, "API Calls can only happen with dictonary types."
-        
-        if not data.has_key("do"):
-            raise NameError, "Missing the argument 'do' from the data."
-        
         # Compile the items for the api in a random order.
         send_list = []
         for key, value in random.sample(data.items(), len(data)):
@@ -50,19 +44,15 @@ class CodexAPI:
             if isinstance(value, (list, dict)):
                 value = json.dumps(value)
             
-            send_list.append("%s=%s" % (key, urllib.quote(str(value))))
+            send_list.append("%s=%s" % (key, urllib.parse.quote(str(value))))
             
         send_encode = "&".join(send_list)
         
         # Encrypt the output using our key.
-        bf = Blowfish(CodexAPI.key)
-        bf.initCTR()
-        send_data = bf.encryptCTR(str(send_encode)).encode('hex').upper()
+        #bf = Blowfish(CodexAPI.key)
+        #bf.initCTR()
+        #send_data = bf.encryptCTR(str(send_encode)).encode('hex').upper()
         
         # Send and recieve the data
-        req = urllib2.Request(url = "http://djangoapi.neocodex.us/api/do/?key_id=%i" % CodexAPI.keyID, data = 'encdata=' + send_data)
-        h = urllib2.urlopen(req)
-
-        # Turn the data back into an object.
-        final_data = json.loads(h.read())
-        return final_data
+        r = requests.post("http://djangoapi.neocodex.us/api/do/?key=%s" % CodexAPI.key, data=send_encode)
+        return r.json

@@ -57,6 +57,10 @@ class Configuration(MutableMapping):
         return True
         
     @staticmethod
+    def reload():
+        return Configuration.initialize()
+        
+    @staticmethod
     def getConfig():
         return Configuration.__config
     

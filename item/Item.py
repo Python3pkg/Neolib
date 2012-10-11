@@ -41,7 +41,7 @@ class Item:
         pg = usr.getPage("http://www.neopets.com/iteminfo.phtml?obj_id=" + str(itemID), vars = {'Referer': 'http://www.neopets.com/objects.phtml?type=inventory'})
         
         # Verify valid ID
-        if pg.content.find("not in your inventory") != -1:
+        if "not in your inventory" in pg.content:
             logging.getLogger("neolib.item").exception("Invalid ID given, could not populate. ID: " + itemID)
             return False
         

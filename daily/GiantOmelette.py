@@ -25,15 +25,15 @@ class GiantOmelette(Daily):
         pg = self.player.getPage("http://www.neopets.com/prehistoric/omelette.phtml", {'type': 'get_omelette'})
         
         # Ensure daily not previously completed
-        if pg.content.find("NO!") != -1:
+        if "NO!" in pg.content:
             raise dailyAlreadyDone
         
         # Check if the omelette was there
-        if pg.content.find("there doesn't seem to be any left") != -1:
+        if "there doesn't seem to be any left" in pg.content:
             return
         
         # Check if we grabbed any
-        if pg.content.find("manage to take a slice") != -1:
+        if "manage to take a slice" in pg.content:
             try:
                 # Grab the prize img
                 self.img = pg.find("td", "content").img['src']

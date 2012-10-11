@@ -25,7 +25,6 @@ class UserShop:
             raise invalidUser
             
         self.usr = usr
-        self.populate()
             
     @property
     def till(self):
@@ -46,19 +45,14 @@ class UserShop:
         pg = self.usr.getPage("http://www.neopets.com/process_market.phtml", {'type': 'withdraw', 'amount': str(nps)}, usePin = True)
         
         # If successful redirects to till page
-        if "Location" in pg.header.vars:
-            if pg.header.vars['Location'].find("market.phtml?type=till") != -1:
-                return True
-            else:
-                logging.getLogger("neolib.shop").exception("Could not grab shop till.")
-                logging.getLogger("neolib.html").info("Could not grab shop till.", {'pg': pg})
-                return False
+        if "You currently have" in pg.content:
+            return True
         else:
             logging.getLogger("neolib.shop").exception("Could not grab shop till.")
             logging.getLogger("neolib.html").info("Could not grab shop till.", {'pg': pg})
             return False
     
-    def loadInventory(self):
+    def load(self):
         self.inventory = UserShopBackInventory(self.usr)
     
     def populate(self):
@@ -80,7 +74,7 @@ class UserShop:
             logging.getLogger("neolib.html").info("Could not parse shop details.", {'pg': pg})
             raise parseException
             
-    def loadSalesHistory(self):
+    def loadHistory(self):
         pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=sales")\
         
         try:
@@ -109,7 +103,7 @@ class UserShop:
             logging.getLogger("neolib.html").info("Could not parse sales history.", {'pg': pg})
             raise parseException
             
-    def updateShop(self):
+    def update(self):
         postData = {'type': 'update_prices', 'order_by': 'id', 'view': ''}
         
         for x in range(1, self.inventory.pages + 1):
@@ -120,7 +114,7 @@ class UserShop:
                 pg = self.usr.getPage("http://www.neopets.com/process_market.phtml", postData, {'Referer': ref}, True)
                 
                 # If successful redirects to shop
-                if pg.content.find("The Marketplace") != -1:
+                if "The Marketplace" in pg.content:
                     return True
                 else:
                     logging.getLogger("neolib.shop").exception("Could not verify if prices were updated on user shop.")

@@ -5,7 +5,7 @@ from neolib.user.Pet import Pet
 
 def updateNPs(usr, pg):
     # Ensure this page has the current Nps on it
-    if pg.content.find("npanchor") != -1:
+    if "npanchor" in pg.content:
         try:
             # Parse and set Nps
             usr.nps = int( pg.find("a", id = "npanchor").text.replace(",", "") )
@@ -16,7 +16,7 @@ def updateNPs(usr, pg):
                 
 def updatePet(usr, pg):
     # Ensure this page has the current active pet on it
-    if pg.content.find("sidebarTable") != -1:
+    if "sidebarTable" in pg.content:
         try:
             # Parse the active pet details
             panel = pg.find("table", "sidebarTable")
@@ -39,7 +39,7 @@ def updatePet(usr, pg):
     return [usr, pg]
         
 def autoLogin(usr, pg):
-    if pg.title == "Neopets - Hi!":
+    if "http://www.neopets.com/login/index.phtml" in pg.resp.url:
         # If auto login is enabled, try to log back in, otherwise raise an exception to let higher processes know the user is logged out.
         if usr.autoLogin:
             # Clear cookies
@@ -49,7 +49,7 @@ def autoLogin(usr, pg):
                 usr.loggedIn = True
                     
                 # Request the page again now that the user is logged in
-                pg = Page(pg.url, usr.cookieJar, pg.postData, pg.vars)
+                pg = usr.getPage(pg.url, pg.postData, pg.vars)
             else:
                 # Failed to login. Update status, log it, and raise an exception
                 usr.loggedIn = False

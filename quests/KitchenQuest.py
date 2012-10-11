@@ -26,13 +26,13 @@ class KitchenQuest:
         self.usr = usr
         pg = usr.getPage("http://www.neopets.com/island/kitchen.phtml")
         
-        if pg.content.find("Sorry, too late") != -1:
+        if "Sorry, too late" in pg.content:
             pg = usr.getPage("http://www.neopets.com/island/kitchen.phtml")
         
-        if pg.content.find("there is a limit of") != -1:
+        if "there is a limit of" in pg.content:
             raise questLimitException
         
-        if pg.content.find("still need some ingredients from you") != -1:
+        if "still need some ingredients from you" in pg.content:
             self._parseActiveQuest(pg)
             
             usr.loadInventory()
@@ -103,7 +103,7 @@ class KitchenQuest:
     def submitQuest(self):
         pg = self.usr.getPage("http://www.neopets.com/island/kitchen2.phtml", {'type': 'gotingredients'})
         
-        if pg.content.find("Woohoo") != -1:
+        if "Woohoo" in pg.content:
             try:
                 self.prize = pg.find(text = "The Chef waves his hands, and you may collect your prize...").parent.parent.find_all("b")[-1].text
             except Exception:

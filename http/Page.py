@@ -99,32 +99,7 @@ class Page(BeautifulSoup):
         self.content = r.text
         
         BeautifulSoup.__init__(self, self.content)
-        """if not self._wrapper:
-            self._wrapper = HTTPWrapper()
-            
-        self.url = url
-        self.intCookies = cookies
-        self.postData = postData
-        self.vars = vars
         
-        if cookies:
-            self._wrapper.cookieJar = cookies
-            
-        # Assume request type POST if postData is present
-        if postData:
-            type = "POST"
-        else:
-            type = "GET"
-            
-        # Decode UTF-8 or else you get decoding errors on some pages with special characters
-        self.content = self._wrapper.request(type, url, postData, vars, proxy).decode('utf-8')
-        
-        self.header = self._wrapper.respHeader
-        self.reqHeader = self._wrapper.reqHeader
-        self.cookies = self._wrapper.cookieJar
-        
-        BeautifulSoup.__init__(self, self.content)"""
-    
     def imageToFile(self, url, localfile):
         """ Downloads an image to a local file, returns if it was sucessful or not
         
