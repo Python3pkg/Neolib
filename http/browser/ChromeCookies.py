@@ -12,7 +12,6 @@ import requests
 import calendar
 import logging
 import time
-import pytz
 import os
 
 class ChromeCookies(BrowserCookies):
