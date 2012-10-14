@@ -72,7 +72,7 @@ class Configuration(MutableMapping):
     def __writeConfig():
         try:
             f = open(Configuration.path, 'w')
-            f.write(json.dumps(Configuration.__makeDict(Configuration.__config)))
+            f.write(json.dumps(Configuration.__makeDict(Configuration.__config), sort_keys = True, indent = 4))
             f.close()
             
             Configuration.__makeConfig(Configuration.__config)

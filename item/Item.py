@@ -145,3 +145,5 @@ class Item:
         pg = user.getPage("http://www.neopets.com/useobject.phtml", {'obj_id': str(self.id), 'action': action}, {"Referer": ref})
         return pg.content
         
+    def __repr__(self):
+        return "<item \"" + self.name + "\">"

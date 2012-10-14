@@ -11,6 +11,10 @@ from neolib.user.hooks import *
 from neolib.user.Pet import Pet
 from neolib.user.SDB import SDB
 import logging
+import zlib
+import base64
+import hashlib
+import pickle
 
 class User:
     username = ""
@@ -35,13 +39,13 @@ class User:
     lastPage = ""
     useRef = True
     autoLogin = True
-    loggedIn = False
     useHooks = True
     browserSync = False
+    savePassword = False
     
-    configVars = ['username', 'proxy', 'browser', 'useRef', 'autoLogin', 'useHooks', 'browserSync']
+    configVars = ['username', 'password', 'session', 'proxy', 'browser', 'useRef', 'autoLogin', 'useHooks', 'browserSync', 'savePassword']
     
-    def __init__(self, username, password = "", pin=None):
+    def __init__(self, username, password="", pin=None):
         # Neopets automatically converts all capitals in a username to lowercase
         self.username = username.lower()
         self.password = password
@@ -69,21 +73,25 @@ class User:
         else:
             self.__loadConfig()
         
-    def login(self):
+    def login(self, password):
         pg = self.getPage("http://www.neopets.com/login.phtml", {'username': self.username, 'password': self.password, 'destination': '/index.phtml'})
+        return self.loggedIn
+    
+    @property
+    def loggedIn(self):
+        pg = self.getPage("http://www.neopets.com/")
         
-        # Index page should contain the username if successfully logged in
-        if self.username in pg.content:
-            self.loggedIn = True
-            return True
-        else:
-            return False
+        return self.username in pg.content
     
     def addHook(self, hook):
         self.hooks.append(hook)
         
     def setRandomEventCallback(self, cb):
         self.RECallback = cb
+    
+    @property
+    def browsers(self):
+        return BrowserCookies.loadBrowsers()
     
     def syncWithBrowser(self, browser):
         BrowserCookies.loadBrowsers()
@@ -94,11 +102,30 @@ class User:
         self.browser = browser
         return True
         
+    def deSync(self):
+        self.browserSync = False
+        
     def exportVars(self):
         # Code to load all attributes
         for prop in dir(self):
             if getattr(self, prop) == None: continue
             if not prop in self.configVars: continue
+            
+            # Special handling for some attributes
+            if prop == "session":
+                pic = pickle.dumps(getattr(self, prop).cookies)
+                comp = zlib.compress(pic)
+                enc = base64.b64encode(comp)
+                self.config[prop] = enc.decode()
+                continue
+                
+            if prop == "password" and not self.savePassword: continue
+            if prop == "password":
+                s = hashlib.md5(self.username.encode()).hexdigest()
+                p = base64.b64encode(getattr(self, prop).encode()) + s.encode()
+                self.config[prop] = p.decode()
+                continue
+            
             self.config[prop] = str(getattr(self, prop))
             
         self.config.write()
@@ -128,10 +155,26 @@ class User:
         self.config = c.users[self.username]
         for key in self.config:
             if not key in self.configVars: continue
+            
             if self.config[key] == 'True':
                 self.config.__dict__[key] = True
             elif self.config[key] == 'False':
                 self.config.__dict__[key] = False
+                
+            # Special handling for some attributes
+            if key == "session":
+                enc = base64.b64decode(self.config.__dict__[key].encode())
+                comp = zlib.decompress(enc)
+                pic = pickle.loads(comp)
+                self.session.cookies = pic
+                continue
+                
+            if key == "password":
+                s = hashlib.md5(self.username.encode()).hexdigest()
+                p = base64.b64decode(self.config.__dict__[key].replace(s, "").encode())
+                setattr(self, key, p.decode())
+                continue
+            
             setattr(self, key, self.config.__dict__[key])
         
     
@@ -168,3 +211,6 @@ class User:
         
     def __str__(self):
         return self.username
+        
+    def __repr__(self):
+        return "<User \"" + self.username + "\">"
