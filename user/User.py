@@ -73,7 +73,7 @@ class User:
         else:
             self.__loadConfig()
         
-    def login(self, password):
+    def login(self):
         pg = self.getPage("http://www.neopets.com/login.phtml", {'username': self.username, 'password': self.password, 'destination': '/index.phtml'})
         return self.loggedIn
     
