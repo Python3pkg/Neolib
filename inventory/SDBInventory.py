@@ -1,7 +1,7 @@
-""":mod:`SDBInventory` -- Contains the SDBInventory class
+""":mod:`SDBInventory` -- Provides an interface for SDB inventory
 
 .. module:: SDBInventory
-   :synopsis: Contains the SDBInventory class
+   :synopsis: Provides an interface for SDB inventory
 .. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
 """
 
@@ -52,12 +52,14 @@ class SDBInventory(Inventory):
     """
     
     pages = 0
+    forms = {}
     
     def __init__(self, usr):
         if not usr:
             raise invalidUser
             
         pg = usr.getPage("http://www.neopets.com/safetydeposit.phtml")
+        self.forms[1] = pg.getForm(usr, name="boxform")
         self.items = {}
         
         pages = None
@@ -67,12 +69,13 @@ class SDBInventory(Inventory):
             
             # Knock off the first page
             pages.pop(0)
+        else:
+            self.pages = 1
             
         try:
             self._loadInventory(usr, pg, 1)
         except Exception:
-            logging.getLogger("neolib.inventory").exception("Unable to parse SDB inventory.")
-            logging.getLogger("neolib.html").info("Unable to parse SDB inventory.", {'pg': pg})
+            logging.getLogger("neolib.inventory").exception("Unable to parse SDB inventory.", {'pg': pg})
             raise parseException
             
         if pages:
@@ -82,6 +85,7 @@ class SDBInventory(Inventory):
             i = 2
             for page in pages:
                 pg = usr.getPage("http://www.neopets.com/safetydeposit.phtml?offset=" + page['value'])
+                self.forms[i] = pg.getForm(usr, name="boxform")
                 
                 # Ensure there's items on the page
                 if "End of results reached" in pg.content:
@@ -90,8 +94,7 @@ class SDBInventory(Inventory):
                 try:
                     self._loadInventory(usr, pg, i)
                 except Exception:
-                    logging.getLogger("neolib.inventory").exception("Unable to parse SDB inventory.")
-                    logging.getLogger("neolib.html").info("Unable to parse SDB inventory.", {'pg': pg})
+                    logging.getLogger("neolib.inventory").exception("Unable to parse SDB inventory.", {'pg': pg})
                     raise parseException
                 i += 1
                 

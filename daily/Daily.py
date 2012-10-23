@@ -1,7 +1,7 @@
-""":mod:`Daily` -- Contains the Daily class
+""":mod:`Daily` -- Provides an interface for Neopets daily tasks
 
 .. module:: Daily
-   :synopsis: Contains the Daily class
+   :synopsis: Provides an interface for Neopets daily tasks
 .. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
 """
 

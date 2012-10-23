@@ -45,8 +45,7 @@ class ColtzanShrine(Daily):
             # Show that we won
             self.win = True
         except Exception:
-            logging.getLogger("neolib.daily").exception("Could not parse Coltzan Shrine daily. Source: \n" + pg.content + "\n\n\n")
-            logging.getLogger("neolib.html").info("Could not parse Coltzan Shrine daily.", {'pg': pg})
+            logging.getLogger("neolib.daily").exception("Could not parse Coltzan Shrine daily.", {'pg': pg})
             raise parseException
         
     def getMessage(self):

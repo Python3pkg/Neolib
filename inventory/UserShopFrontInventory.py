@@ -1,7 +1,7 @@
-""":mod:`UserShopFrontInventory` -- Contains the UserShopFrontInventory class
+""":mod:`UserShopFrontInventory` -- Provides an interface for user shop front inventory
 
 .. module:: UserShopFrontInventory
-   :synopsis: Contains the UserShopFrontInventory class
+   :synopsis: Provides an interface for user shop front inventory
 .. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
 """
 
@@ -51,21 +51,21 @@ class UserShopFrontInventory(Inventory):
        ...
     """
     
-    def __init__(self, usr, owner = "", objID = "", price = ""):
+    def __init__(self, usr, owner = "", objID = "", price = "", pg = None):
         if not usr:
             raise invalidUser
         
         self.items = {}
-        self._loadInventory(usr, owner, objID, price)
+        self._loadInventory(usr, owner, objID, price, pg)
     
-    def _loadInventory(self, usr, owner, objID = "", price = ""):
+    def _loadInventory(self, usr, owner, objID = "", price = "", pg = None):
         if objID and not price:
             raise invalidShop
-                
-        if objID:
-            pg = usr.getPage("http://www.neopets.com/browseshop.phtml?owner=" + owner + "&buy_obj_info_id=" + objID + "&buy_cost_neopoints=" + price)
-        else:     
-            pg = usr.getPage("http://www.neopets.com/browseshop.phtml?owner=" + owner)
+        if not pg:
+            if objID:
+                pg = usr.getPage("http://www.neopets.com/browseshop.phtml?owner=" + owner + "&buy_obj_info_id=" + objID + "&buy_cost_neopoints=" + price)
+            else:     
+                pg = usr.getPage("http://www.neopets.com/browseshop.phtml?owner=" + owner)
         
         # Checks for empty or invalid shop
         if "doesn't have a shop" in pg.content:
@@ -97,12 +97,11 @@ class UserShopFrontInventory(Inventory):
                     tmpItem.desc = item.img['title']
                     tmpItem.img = item.img['src']
                     tmpItem.price = item.text.split("Cost : ")[1]
-                    tmpItem.stock = item.text.split(" in stock")[0][-1:]
+                    tmpItem.stock = item.text.split(" in stock")[0].replace(tmpItem.name, "")
                         
                     self.items[item.b.text] = tmpItem
         except Exception:
-            logging.getLogger("neolib.inventory").exception("Unable to parse user shop front inventory.")
-            logging.getLogger("neolib.html").info("Unable to parse user shop front inventory.", {'pg': pg})
+            logging.getLogger("neolib.inventory").exception("Unable to parse user shop front inventory.", {'pg': pg})
             raise parseException
             
     def _parseMainItem(self, pg, usr, owner):

@@ -1,7 +1,7 @@
-""":mod:`UserInventory` -- Contains the UserInventory class
+""":mod:`UserInventory` -- Provides an interface for a user inventory
 
 .. module:: UserInventory
-   :synopsis: Contains the UserInventory class
+   :synopsis: Provides an interface for a user inventory
 .. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
 """
 
@@ -76,6 +76,5 @@ class UserInventory(Inventory):
                     
                     self.items[name] = tmpItem
         except Exception:
-            logging.getLogger("neolib.inventory").exception("Unable to parse user inventory.")
-            logging.getLogger("neolib.html").info("Unable to parse user inventory.", {'pg': pg})
+            logging.getLogger("neolib.inventory").exception("Unable to parse user inventory.", {'pg': pg})
             raise parseException

@@ -44,8 +44,7 @@ class KitchenQuest:
         try:
             self.recipe = pg.find("td", "content").find("input", {'name': 'food_desc'})['value']
         except Exception:
-            logging.getLogger("neolib.quest").exception("Failed to parse quest recipe")
-            logging.getLogger("neolib.html").info("Failed to parse quest recipe", {'pg': pg})
+            logging.getLogger("neolib.quest").exception("Failed to parse quest recipe", {'pg': pg})
             raise parseException
             
         pg = usr.getPage("http://www.neopets.com/island/kitchen2.phtml", {'food_desc': self.recipe})
@@ -63,8 +62,7 @@ class KitchenQuest:
                 
                 self.items.append(tmpItem)
         except Exception:
-            logging.getLogger("neolib.quest").exception("Failed to parse quest details")
-            logging.getLogger("neolib.html").info("Failed to parse quest details", {'pg': pg})
+            logging.getLogger("neolib.quest").exception("Failed to parse quest details", {'pg': pg})
             raise parseException
 
     def updateQuest(self):
@@ -107,14 +105,12 @@ class KitchenQuest:
             try:
                 self.prize = pg.find(text = "The Chef waves his hands, and you may collect your prize...").parent.parent.find_all("b")[-1].text
             except Exception:
-                logging.getLogger("neolib.quest").exception("Failed to parse kitchen quest prize")
-                logging.getLogger("neolib.html").info("Failed to parse kitchen quest prize", {'pg': pg})
+                logging.getLogger("neolib.quest").exception("Failed to parse kitchen quest prize", {'pg': pg})
                 raise parseException
                 
             return True
         else:
-            logging.getLogger("neolib.quest").info("Failed to complete kitchen quest")
-            logging.getLogger("neolib.html").info("Failed to complete kitchen quest", {'pg': pg})
+            logging.getLogger("neolib.quest").info("Failed to complete kitchen quest", {'pg': pg})
             return False
                 
 
@@ -138,6 +134,5 @@ class KitchenQuest:
                 
                 self.items.append(tmpItem)
         except Exception:
-            logging.getLogger("neolib.quest").exception("Failed to parse quest details")
-            logging.getLogger("neolib.html").info("Failed to parse quest details", {'pg': pg})
+            logging.getLogger("neolib.quest").exception("Failed to parse quest details", {'pg': pg})
             raise parseException

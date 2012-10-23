@@ -15,6 +15,5 @@ class UserShopFrontItem(Item):
         elif "does not exist in this shop" in pg.content:
                 return False
         else:
-            logging.getLogger("neolib.item").exception("Unknown message when attempting to buy user shop item.")
-            logging.getLogger("neolib.html").info("Unknown message when attempting to buy user shop item.", {'pg': pg})
+            logging.getLogger("neolib.item").exception("Unknown message when attempting to buy user shop item.", {'pg': pg})
             return False

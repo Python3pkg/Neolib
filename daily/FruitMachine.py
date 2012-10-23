@@ -18,37 +18,27 @@ class FruitMachine(Daily):
     """
     
     def play(self):
-        # Visit daily page
         pg = self.player.getPage("http://www.neopets.com/desert/fruit/index.phtml")
-        
-        # Ensure daily not previously completed
         if "already had your free spin" in pg.content:
             raise dailyAlreadyDone
+            
+        form = pg.getForm(self.player, method="post")
+        pg = form.submit()
         
-        # Parse form values
-        spin = pg.find("div", "result").form.find_all("input")[0]['value']
-        ck = pg.find("div", "result").form.find_all("input")[1]['value']
-        
-        # Process daily
-        pg = self.player.getPage("http://www.neopets.com/desert/fruit/index.phtml", {'spin': spin, 'ck': ck})
-        
-        # Check if we won
+        # Indicates we won
         if "this is not a winning spin" in pg.content:
             return
             
         try:
-            # Set win to true and parse NPs won
             self.win = True
             self.nps = pg.find("div", id="fruitResult").span.b.text
             
-            # Check if we have an additional prize
+            # Indiciates addtional prize
             if "You also win" in pg.content:
-                # Parse the prize item name and image
                 self.prize = pg.find("td", "prizeCell").img.b.text
                 self.img = pg.find("td", "prizeCell").img['src']
         except Exception:
-            logging.getLogger("neolib.daily").exception("Could not parse Fruit Machine daily.")
-            logging.getLogger("neolib.html").info("Could not parse Fruit Machine daily.", {'pg': pg})
+            logging.getLogger("neolib.daily").exception("Could not parse Fruit Machine daily.", {'pg': pg})
             raise parseException
                 
     def getMessage(self):

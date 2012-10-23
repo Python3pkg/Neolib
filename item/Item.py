@@ -1,10 +1,42 @@
+""":mod:`MainShopInventory` -- Provides a common interface for manipulating Neopets items
+
+.. module:: MainShopInventory
+   :synopsis: Provides a common interface for manipulating Neopets items
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.exceptions import parseException
-#from neolib.shop.ShopWizard import ShopWizard
 import logging
 
 class Item:
-    usr = None
     
+    """Represents a main shop inventory
+    
+    Sub-classes the Inventory class to provide an interface for a main shop.
+    Automatically 
+    populates itself with the inventory items upon initialization.
+       
+    Initialization
+       MainShopInventory(usr, shopID)
+       
+       Loads the main shop inventory
+       
+       Parameters
+          usr (User) -- User to load the shop with
+          shopID (str) -- The main shop ID
+          
+       Raises
+          parseException
+        
+    Example
+       >>> shop = MainShop(usr, "1")
+       >>> for item in shop.inventory:
+       ...     print item.name
+       Green Apple
+       ...
+    """
+    
+    usr = None
     
     id = None
     name = None
@@ -21,6 +53,18 @@ class Item:
     pg = None
     remove = 0
     owner = None
+    
+    SHOP = "stockshop"
+    SDB = "safetydeposit"
+    GALLERY = "stockgallery"
+    TRASH = "drop"
+    DONATE = "donate"
+    
+    _messages = {"stockshop": "You have added",
+                "safetydeposit": "You have added",
+                "stockgallery": "You have added",
+                "drop": "page should close automatically",
+                "donate": "page should close automatically"}
     
     def __init__(self, itemName):
         self.name = itemName
@@ -57,93 +101,26 @@ class Item:
             self.rarity = stats[5].text
             self.estVal = stats[7].text
         except Exception:
-            logging.getLogger("neolib.item").exception("Failed to parse item details.")
-            logging.getLogger("neolib.html").info("Failed to parse item details.", {'pg': pg})
+            logging.getLogger("neolib.item").exception("Failed to parse item details.", {'pg': pg})
             raise parseException
         
         return True
-    
-    #def getPrice(self, searches, method = "AVERAGE", deduct = 0):
-    #    # Pass the parameters off to the ShopWziard.priceItem() method to obtain a price
-    #    price = ShopWizard.priceItem(self.usr, self.name, searches, method, deduct)
-    #    
-    #    # If False was returned, most likely an UB item, so it should not be given a price greater than 0
-    #    if not price:
-    #        self.price = 0
-    #        return False
-    #    else:
-    #        self.price = price
-    #        return self.price
-    
-    def putSDB(self, user = None):
-        if not self.usr and not user:
-            return False
         
-        # The object's user is used by default over any given user        
-        if self.usr: user = self.usr
+    def sendTo(self, loc, usr=None):
+        if not loc in self._messages:
+            return False
+        if not self.usr and not usr:
+            return False
+        if self.usr: usr = self.usr
         
-        html = self.processAction(user, "safetydeposit")
-        if html.find("You have added") != -1:
-            return True
-        else:
-            return False
+        # Request the item page first to look human
+        pg = usr.getPage("http://www.neopets.com/iteminfo.phtml?obj_id=" + str(self.id))
         
-    def donate(self, user = None):
-        if not self.usr and not user:
-            return False
-            
-        if self.usr: user = self.usr
+        form = pg.getForm(usr, name="item_form")
+        form['action'] = loc
         
-        html = self.processAction(user, "donate")
-        if html.find("page should close automatically") != -1:
-            return True
-        else:
-            return False
-        
-    def discard(self, user = None):
-        if not self.usr and not user:
-            return False
-            
-        if self.usr: user = self.usr
-            
-        html = self.processAction(user, "drop")
-        if html.find("page should close automatically") != -1:
-            return True
-        else:
-            return False
-        
-    def stock(self, user = None):
-        if not self.usr and not user:
-            return False
-            
-        if self.usr: user = self.usr
-        
-        html = self.processAction(user, "stockshop")
-        if html.find("You have added") != -1:
-            return True
-        else:
-            return False
-        
-    def putGallery(self, user = None):
-        if not self.usr and not user:
-            return False
-            
-        if self.usr: user = self.usr
-            
-        html = self.processAction(user, "stockgallery")
-        if html.find("You have added") != -1:
-            return True
-        else:
-            return False
-    
-    def removeItem(self, stock):
-        self.remove = stock
-    
-    def processAction(self, user, action):
-        # Neopets expects a specific referrer when sending this post data
-        ref = "http://www.neopets.com/iteminfo.phtml?obj_id=" + str(self.id)
-        pg = user.getPage("http://www.neopets.com/useobject.phtml", {'obj_id': str(self.id), 'action': action}, {"Referer": ref})
-        return pg.content
+        pg = form.submit()
+        return self._messages[loc] in pg.content
         
     def __repr__(self):
         return "<item \"" + self.name + "\">"

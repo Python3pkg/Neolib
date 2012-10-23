@@ -1,7 +1,7 @@
-""":mod:`Inventory` -- Contains the Inventory class
+""":mod:`Inventory` -- Provides an interface for a Neopets inventory
 
 .. module:: Inventory
-   :synopsis: Contains the Inventory class
+   :synopsis: Provides an interface for a Neopets inventory
 .. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
 """
 

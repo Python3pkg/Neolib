@@ -18,26 +18,21 @@ class PetPetPark(Daily):
     """
     
     def play(self):
-        # Visit daily page
         pg = self.player.getPage("http://www.neopets.com/petpetpark/daily.phtml")
         
-        # Process daily
-        pg = self.player.getPage("http://www.neopets.com/petpetpark/daily.phtml", {'go': '1'})
+        form = pg.getForm(self.player, action="/petpetpark/daily.phtml")
+        pg = form.submit()
         
-        # Ensure daily not previously completed
         if "already collected your prize" in pg.content:
             raise dailyAlreadyDone
         
         try:
-            # Parse the prize
             self.img =  pg.find("div", "ppx_daily_message").img['src']
             self.prize = pg.find("div", "ppx_daily_message").a.text
             
-            # Show that we won
             self.win = True
         except Exception:
-            logging.getLogger("neolib.daily").exception("Could not parse Pet Pet Park daily.")
-            logging.getLogger("neolib.html").info("Could not parse Pet Pet Park daily.", {'pg': pg})
+            logging.getLogger("neolib.daily").exception("Could not parse Pet Pet Park daily.", {'pg': pg})
             raise parseException
         
     def getMessage(self):

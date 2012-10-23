@@ -18,28 +18,23 @@ class GiantJelly(Daily):
     """
     
     def play(self):
-        # Visit daily page
         pg = self.player.getPage("http://www.neopets.com/jelly/jelly.phtml")
         
-        # Process daily
-        pg = self.player.getPage("http://www.neopets.com/jelly/jelly.phtml", {'type': 'get_jelly'})
+        form = pg.getForm(self.player, action="jelly.phtml")
+        pg = form.submit()
         
-        # Ensure daily not previously completed
         if "NO!" in pg.content:
             raise dailyAlreadyDone
         
-        # Parse prize
         try:
             parts = pg.find_all("p")
         
             self.img = parts[2].img['src']
             self.prize = parts[3].b.text
             
-            # Show that we won
             self.win = True
         except Exception:
-            logging.getLogger("neolib.daily").exception("Could not parse Giant Jelly daily.")
-            logging.getLogger("neolib.html").info("Could not parse Giant Jelly daily.", {'pg': pg})
+            logging.getLogger("neolib.daily").exception("Could not parse Giant Jelly daily.", {'pg': pg})
             raise parseException
         
     def getMessage(self):

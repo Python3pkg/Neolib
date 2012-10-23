@@ -18,7 +18,7 @@ class NST(threading.Thread):
         NST.curTime = datetime.datetime.strptime(curtime.replace(" NST", ""), "%I:%M:%S %p") + datetime.timedelta(0,2)
         
         NST.inst = NST()
-        NST.daemon = True
+        NST.daemon = True # Ensures the thread is properly destroyed when the master program terminates
         NST.inst.start()
         
     @staticmethod

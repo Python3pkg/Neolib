@@ -73,13 +73,23 @@ class User:
         else:
             self.__loadConfig()
         
-    def login(self):
-        pg = self.getPage("http://www.neopets.com/login.phtml", {'username': self.username, 'password': self.password, 'destination': '/index.phtml'})
-        return self.loggedIn
-    
     @property
     def loggedIn(self):
         pg = self.getPage("http://www.neopets.com/")
+        return self.username in pg.content
+        
+    @property
+    def browsers(self):
+        return BrowserCookies.loadBrowsers()
+    
+    def login(self):
+        # Request index to obtain initial cookies and look more human
+        pg = self.getPage("http://www.neopets.com")
+        
+        form = pg.getForm(self, action="/login.phtml")
+        form['username'] = self.username
+        form['password'] = self.password
+        pg = form.submit()
         
         return self.username in pg.content
     
@@ -89,11 +99,7 @@ class User:
     def setRandomEventCallback(self, cb):
         self.RECallback = cb
     
-    @property
-    def browsers(self):
-        return BrowserCookies.loadBrowsers()
-    
-    def syncWithBrowser(self, browser):
+    def sync(self, browser):
         BrowserCookies.loadBrowsers()
         if not browser in BrowserCookies.browsers:
                 return False
@@ -105,7 +111,7 @@ class User:
     def deSync(self):
         self.browserSync = False
         
-    def exportVars(self):
+    def save(self):
         # Code to load all attributes
         for prop in dir(self):
             if getattr(self, prop) == None: continue
@@ -118,17 +124,47 @@ class User:
                 enc = base64.b64encode(comp)
                 self.config[prop] = enc.decode()
                 continue
-                
+                    
             if prop == "password" and not self.savePassword: continue
             if prop == "password":
                 s = hashlib.md5(self.username.encode()).hexdigest()
                 p = base64.b64encode(getattr(self, prop).encode()) + s.encode()
                 self.config[prop] = p.decode()
                 continue
-            
+                
             self.config[prop] = str(getattr(self, prop))
+                
+            self.config.write()
+        
+    def getPage(self, url, postData = None, vars = None, usePin = False):
+        # If using a referer is desired and one has not already been supplied, 
+        # then set the referer to the user's last visited page.
+        if self.useRef and len(self.lastPage) > 0:
+            if not vars: vars = {'Referer': self.lastPage}
+            elif not "Referer" in vars: vars['Referer'] = self.lastPage
             
-        self.config.write()
+        self.lastPage = url
+        
+        if usePin:
+            if self.pin:
+                # All forms that require a pin share the same variable name of 'pin'
+                postData['pin'] = str(self.pin)
+        
+        if bool(self.browserSync):
+            self.__syncCookies()
+        
+        pg = Page(url, self.session, postData, vars, self.proxy)
+        
+        if self.browserSync:
+            self.__writeCookies()
+        
+        if "http://images.neopets.com/homepage/indexbak_oops_en.png" in pg.content:
+            raise neopetsOfflineException
+        
+        if self.useHooks:
+            for hook in self.hooks:
+                self, pg = hook(self, pg)
+        return pg
         
     def __syncCookies(self):
         if self.browserSync:  
@@ -149,7 +185,7 @@ class User:
         if not self.username in c.users:
             c.users.addSection(self.username)
             self.config = c.users[self.username]
-            self.exportVars()
+            self.save()
             return
             
         self.config = c.users[self.username]
@@ -176,38 +212,6 @@ class User:
                 continue
             
             setattr(self, key, self.config.__dict__[key])
-        
-    
-    def getPage(self, url, postData = None, vars = None, usePin = False):
-        # If using a referer is desired and one has not already been supplied, 
-        # then set the referer to the user's last visited page.
-        if self.useRef and len(self.lastPage) > 0:
-            if not vars: vars = {'Referer': self.lastPage}
-            elif not "Referer" in vars: vars['Referer'] = self.lastPage
-            
-        self.lastPage = url
-        
-        if usePin:
-            if self.pin:
-                # All forms that require a pin share the same variable name of 'pin'
-                postData['pin'] = str(self.pin)
-        
-        if bool(self.browserSync):
-            self.__syncCookies()
-        
-        pg = Page(url, self.session, postData, vars, self.proxy)
-        self.cookieJar = pg.cookies
-        
-        if self.browserSync:
-            self.__writeCookies()
-        
-        if "http://images.neopets.com/homepage/indexbak_oops_en.png" in pg.content:
-            raise neopetsOfflineException
-        
-        if self.useHooks:
-            for hook in self.hooks:
-                self, pg = hook(self, pg)
-        return pg        
         
     def __str__(self):
         return self.username

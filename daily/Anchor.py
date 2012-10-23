@@ -18,35 +18,25 @@ class Anchor(Daily):
     """
         
     def play(self):
-        # Visit daily page
         pg = self.player.getPage("http://www.neopets.com/pirates/anchormanagement.phtml")
-        
-        # Ensure daily not previously completed
         if "already done your share" in pg.content:
             raise dailyAlreadyDone
         
-        # Parse form value
-        action = pg.find("form", id = "form-fire-cannon").input['value']
-        
-        # Process daily
-        pg = self.player.getPage("http://www.neopets.com/pirates/anchormanagement.phtml", {'action': action})
-        
-        # See if we got something
+        form = pg.getForm(self.player, id="form-fire-cannon")
+        pg = form.submit()
+                
+        # Indicates a prize
         if "left you a memento" in pg.content:
             try:
-                # Parse the prize
                 self.prize = pg.find("span", "prize-item-name").text
                 self.img = pg.find("span", "prize-item-name").parent.parent.img['src']
                 
-                # Show that we won
                 self.win = True
             except Exception:
-                logging.getLogger("neolib.daily").exception("Failed to parse Anchor daily.")
-                logging.getLogger("neolib.html").info("Failed to parse Anchor daily.", {'pg': pg})
+                logging.getLogger("neolib.daily").exception("Failed to parse Anchor daily.", {'pg': pg})
                 raise parseException
         else:
-            logging.getLogger("neolib.daily").info("Did not get a prize from Anchor.")
-            logging.getLogger("neolib.html").info("Did not get a prize from Anchor.", {'pg': pg})
+            logging.getLogger("neolib.daily").info("Did not get a prize from Anchor.", {'pg': pg})
             
     def getMessage(self):
         if self.win:

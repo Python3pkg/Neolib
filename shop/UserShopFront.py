@@ -27,9 +27,6 @@ class UserShopFront:
         self.price = price
         
     def load(self):
-        self.inventory = UserShopFrontInventory(self.usr, self.owner, self.objID, self.price)
-        
-    def populate(self):
         pg = self.usr.getPage("http://www.neopets.com/browseshop.phtml?owner=" + self.owner)
         
         # Checks for valid shop
@@ -48,6 +45,7 @@ class UserShopFront:
             self.desc = panel.p.text
             self.welcomeMsg = panel.img.text
         except Exception:
-            logging.getLogger("neolib.shop").exception("Unable to parse shop front content.")
-            logging.getLogger("neolib.html").info("Unable to parse shop front content.", {'pg': pg})
+            logging.getLogger("neolib.shop").exception("Unable to parse shop front content.", {'pg': pg})
             raise parseException
+        
+        self.inventory = UserShopFrontInventory(self.usr, self.owner, self.objID, self.price, pg)

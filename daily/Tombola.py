@@ -23,7 +23,8 @@ class Tombola(Daily):
     def play(self):
         pg = self.player.getPage("http://www.neopets.com/island/tombola.phtml")
 	    
-        pg = self.player.getPage("http://www.neopets.com/island/tombola2.phtml", {'submit': 'play'})
+        form = pg.getForm(self.player, action="tombola2.phtml")
+        pg = form.submit()
         
         if "only allowed one" in pg.content:
 			raise dailyAlreadyDone()
@@ -47,8 +48,7 @@ class Tombola(Daily):
                 for img in imgs:
                     self.prize += img['src'].split("/")[-1].split(".")[0] + ", "
             except Exception:
-                logging.getLogger("neolib.daily").exception("Could not parse Tombola daily.")
-                logging.getLogger("neolib.html").info("Could not parse Tombola daily.", {'pg': pg})
+                logging.getLogger("neolib.daily").exception("Could not parse Tombola daily.", {'pg': pg})
                 raise parseException
         else:
             try:
@@ -63,8 +63,7 @@ class Tombola(Daily):
                 self.msg = parts[1].text + parts[2].text
                 self.prize = parts[3].text.replace("Your Prize - ", "")
             except Exception:
-                logging.getLogger("neolib.daily").exception("Could not parse Tombola daily.")
-                logging.getLogger("neolib.html").info("Could not parse Tombola daily.", {'pg': pg})
+                logging.getLogger("neolib.daily").exception("Could not parse Tombola daily.", {'pg': pg})
                 raise parseException
             
         if "feeling sorry for you" in pg.content:

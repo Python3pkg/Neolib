@@ -17,8 +17,8 @@ class UserShop:
     max = None
     
     history = None
-    
     inventory = None
+    forms = None
     
     def __init__(self, usr):
         if not usr:
@@ -33,8 +33,7 @@ class UserShop:
         try:
             return pg.find_all(text = "Shop Till")[1].parent.next_sibling.b.text.replace(" NP", "").replace(",", "")
         except Exception:
-            logging.getLogger("neolib.shop").exception("Could not grab shop till.")
-            logging.getLogger("neolib.html").info("Could not grab shop till.", {'pg': pg})
+            logging.getLogger("neolib.shop").exception("Could not grab shop till.", {'pg': pg})
             raise parseException
             
     def grabTill(self, nps):
@@ -42,20 +41,20 @@ class UserShop:
             return False
             
         pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=till")
-        pg = self.usr.getPage("http://www.neopets.com/process_market.phtml", {'type': 'withdraw', 'amount': str(nps)}, usePin = True)
+        form = pg.getForm(self.usr, action="process_market.phtml")
+        
+        form['amount'] = str(nps)
+        form.usePin = True
+        pg = form.submit()
         
         # If successful redirects to till page
         if "You currently have" in pg.content:
             return True
         else:
-            logging.getLogger("neolib.shop").exception("Could not grab shop till.")
-            logging.getLogger("neolib.html").info("Could not grab shop till.", {'pg': pg})
+            logging.getLogger("neolib.shop").exception("Could not grab shop till.", {'pg': pg})
             return False
     
     def load(self):
-        self.inventory = UserShopBackInventory(self.usr)
-    
-    def populate(self):
         pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=your")
         
         try:
@@ -70,9 +69,11 @@ class UserShop:
             self.stock = panel.find_all("b")[1].text
             self.max = panel.find_all("b")[2].text
         except Exception:
-            logging.getLogger("neolib.shop").exception("Could not parse shop details.")
-            logging.getLogger("neolib.html").info("Could not parse shop details.", {'pg': pg})
+            logging.getLogger("neolib.shop").exception("Could not parse shop details.", {'pg': pg})
             raise parseException
+        
+        self.inventory = UserShopBackInventory(self.usr, pg)
+        self.forms = self.inventory.forms
             
     def loadHistory(self):
         pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=sales")\
@@ -99,26 +100,20 @@ class UserShop:
             # Reverse the list to put it in order by date
             self.history.reverse()
         except Exception:
-            logging.getLogger("neolib.shop").exception("Could not parse sales history.")
-            logging.getLogger("neolib.html").info("Could not parse sales history.", {'pg': pg})
+            logging.getLogger("neolib.shop").exception("Could not parse sales history.", {'pg': pg})
             raise parseException
             
     def update(self):
-        postData = {'type': 'update_prices', 'order_by': 'id', 'view': ''}
-        
         for x in range(1, self.inventory.pages + 1):
             if self._hasPageChanged(x):
-                postData.update(self._constructPagePostData(x))
-                
-                ref = "http://www.neopets.com/market.phtml?type=your&lim=" + str(x * 30)
-                pg = self.usr.getPage("http://www.neopets.com/process_market.phtml", postData, {'Referer': ref}, True)
+                form = self._updateForm(x)
+                pg = form.submit()
                 
                 # If successful redirects to shop
                 if "The Marketplace" in pg.content:
                     return True
                 else:
-                    logging.getLogger("neolib.shop").exception("Could not verify if prices were updated on user shop.")
-                    logging.getLogger("neolib.html").info("Could not verify if prices were updated on user shop.", {'pg': pg})
+                    logging.getLogger("neolib.shop").exception("Could not verify if prices were updated on user shop.", {'pg': pg})
                     return False
             
     def _itemsOnPage(self, pg):
@@ -144,12 +139,9 @@ class UserShop:
         
         return False
         
-    def _constructPagePostData(self, pg):
-        postData = {}
+    def _updateForm(self, pg):
+        if 'remove_all' in self.forms[pg]: del self.forms[pg]['remove_all']
         for item in self._itemsOnPage(pg):
-            postData["obj_id_" + str(item.pos)] = item.id
-            postData['oldcost_' + str(item.pos)] = item.oldPrice
-            postData['cost_' + str(item.pos)] = str(item.price)
-            postData['back_to_inv[' + item.id + ']'] = int(item.remove)
-            
-        return postData
+            self.forms[pg]['cost_' + str(item.pos)] = str(item.price)
+            self.forms[pg]['back_to_inv[' + item.id + ']'] = int(item.remove)
+        return self.forms[pg]

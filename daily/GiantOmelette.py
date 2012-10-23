@@ -18,35 +18,29 @@ class GiantOmelette(Daily):
     """
     
     def play(self):
-        # Visit daily page
         pg = self.player.getPage("http://www.neopets.com/prehistoric/omelette.phtml")
         
-        # Process daily
-        pg = self.player.getPage("http://www.neopets.com/prehistoric/omelette.phtml", {'type': 'get_omelette'})
+        form = pg.getForm(self.player, action="omelette.phtml")
+        pg = form.submit()
         
-        # Ensure daily not previously completed
         if "NO!" in pg.content:
             raise dailyAlreadyDone
         
-        # Check if the omelette was there
+        # Indiciates no omelette left
         if "there doesn't seem to be any left" in pg.content:
             return
         
-        # Check if we grabbed any
+        # Indiciates obtained some
         if "manage to take a slice" in pg.content:
             try:
-                # Grab the prize img
+                # Image is only indication of what type was grabbed
                 self.img = pg.find("td", "content").img['src']
-                
-                # Show that we won
                 self.win = True
             except Exception:
-                logging.getLogger("neolib.daily").exception("Could not parse Giant Omelette daily.")
-                logging.getLogger("neolib.html").info("Could not parse Giant Omelette daily.", {'pg': pg})                
+                logging.getLogger("neolib.daily").exception("Could not parse Giant Omelette daily.", {'pg': pg})              
                 raise parseException
         else:
-            logging.getLogger("neolib.daily").exception("Failed to grab Omelette.")
-            logging.getLogger("neolib.html").info("Failed to grab Omelette.", {'pg': pg}) 
+            logging.getLogger("neolib.daily").exception("Failed to grab Omelette.", {'pg': pg})
             
     def getMessage(self):
         if self.win:

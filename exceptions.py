@@ -78,6 +78,8 @@ class emptyShop(Exception):
     
 class activeQuest(Exception):
     pass
+class failedOCR(Exception):
+    pass
     
 # Quest
 class questTooExpensive(Exception):

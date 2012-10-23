@@ -45,14 +45,10 @@ def autoLogin(usr, pg):
             # Clear cookies
             usr.session = Page.newSession()
             if usr.login():
-                # Update status
-                usr.loggedIn = True
-                    
                 # Request the page again now that the user is logged in
                 pg = usr.getPage(pg.url, pg.postData, pg.vars)
             else:
                 # Failed to login. Update status, log it, and raise an exception
-                usr.loggedIn = False
                 logging.getLogger("neolib.user").info("User was logged out. Failed to log back in.")
                 raise logoutException
         else:

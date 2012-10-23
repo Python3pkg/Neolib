@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from neolib.HTMLHandler import HTMLHandler
 from neolib.HTMLFilter import HTMLFilter
 
 # Intention of this file is to setup logging whenever the library is initialized.
@@ -11,11 +10,6 @@ logFileName = datetime.today().strftime("Neolib %Y-%m-%d %H-%M-%S") + ".log.txt"
 # Creates a logger instance for the library
 logger = logging.getLogger("neolib")
 logger.setLevel(logging.DEBUG)
-
-# Setup a handler for logging HTML pages
-hh = HTMLHandler()
-hh.setLevel(logging.INFO)
-hh.addFilter(logging.Filter("neolib.html"))
 
 # Creates the file handler and set's delay to True so it only creates the file when a request is issued
 fh = logging.FileHandler(logFileName, delay = True)
@@ -32,11 +26,10 @@ format = logging.Formatter("[%(asctime)s] %(name)s (%(levelname)s) in %(filename
 fh.setFormatter(format) 
 ch.setFormatter(format)
 
-# Set a filter to ensure the file/console handler don't log HTML content
+# Set a filter to ensure the file and console handler don't log HTML content
 fh.addFilter(HTMLFilter())
 ch.addFilter(HTMLFilter())
 
-# Add the console, file, and html handler
+# Add the console and file handler
 logger.addHandler(fh)
 logger.addHandler(ch)
-logger.addHandler(hh)

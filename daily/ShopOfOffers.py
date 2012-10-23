@@ -30,8 +30,7 @@ class ShopOfOffers(Daily):
                 # Show that we won
                 self.win = True
             except Exception:
-                logging.getLogger("neolib.daily").exception("Could not parse Pet Pet Park daily.")
-                logging.getLogger("neolib.html").exception("Could not parse Pet Pet Park daily.", {'pg': pg}) 
+                logging.getLogger("neolib.daily").exception("Could not parse Pet Pet Park daily.", {'pg': pg}) 
                 raise parseException
         else:
             raise dailyAlreadyDone

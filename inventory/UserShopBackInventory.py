@@ -1,7 +1,7 @@
-""":mod:`UserShopBackInventory` -- Contains the UserShopBackInventory class
+""":mod:`UserShopBackInventory` -- Provides an interface for user shop inventory
 
 .. module:: UserShopBackInventory
-   :synopsis: Contains the UserShopBackInventory class
+   :synopsis: Provides an interface for user shop inventory
 .. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
 """
 
@@ -51,17 +51,20 @@ class UserShopBackInventory(Inventory):
     """
     
     pages = 0
+    forms = {}
     
-    def __init__(self, usr):
+    def __init__(self, usr, pg = None):
         if not usr:
             raise invalidUser
         
         self.items = {}
-        self._loadInventory(usr)
+        self._loadInventory(usr, pg)
         
-    def _loadInventory(self, usr):
-        pg = usr.getPage("http://www.neopets.com/market.phtml?type=your")
+    def _loadInventory(self, usr, pg = None):
+        if not pg:
+            pg = usr.getPage("http://www.neopets.com/market.phtml?type=your")
         
+        self.forms[1] = pg.getForm(usr, action="process_market.phtml")
         pages = None
         # Checks if multiple pages exist
         if "[1-30]" in pg.content:
@@ -74,8 +77,7 @@ class UserShopBackInventory(Inventory):
         try:
             self.__loadItems(usr, pg, 1) # Load first page
         except Exception:
-            logging.getLogger("neolib.inventory").exception("Unable to parse user shop back inventory.")
-            logging.getLogger("neolib.html").info("Unable to parse user shop back inventory.", {'pg': pg})
+            logging.getLogger("neolib.inventory").exception("Unable to parse user shop back inventory.", {'pg': pg})
             raise parseException
         
         if pages:
@@ -85,12 +87,12 @@ class UserShopBackInventory(Inventory):
             i = 2
             for page in pages:
                 pg = usr.getPage("http://www.neopets.com/" + page['href'])
+                self.forms[i] = pg.getForm(usr, action="process_market.phtml")
                 
                 try:
                     self.__loadItems(usr, pg, i)
                 except Exception:
-                    logging.getLogger("neolib.inventory").exception("Unable to parse user shop back inventory.")
-                    logging.getLogger("neolib.html").info("Unable to parse user shop back inventory.", {'pg': pg})
+                    logging.getLogger("neolib.inventory").exception("Unable to parse user shop back inventory.", {'pg': pg})
                     raise parseException
                 i += 1
         else:
@@ -118,7 +120,6 @@ class UserShopBackInventory(Inventory):
             tmpItem.id = info[6].find("select")['name'].split("[")[1].replace("]", "")
             
             tmpItem.pg = pgno
-            tmpItem.oldPrice = tmpItem.price
             tmpItem.usr = usr
             
             # May be multiple types of one item. I.E Secret Laboratory Map

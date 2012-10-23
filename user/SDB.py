@@ -6,6 +6,7 @@ class SDB:
     
     usr = None
     inventory = None
+    forms = None
     
     def __init__(self, usr):
         if not usr:
@@ -15,24 +16,20 @@ class SDB:
         
     def load(self):
         self.inventory = SDBInventory(self.usr)
+        self.forms = self.inventory.forms
         
-    def updateSDB(self):
-        postData = {'obj_name': '', 'category': '0'}
-        
+    def update(self):
         for x in range(1, self.inventory.pages + 1):
             if self._hasPageChanged(x):
-                postData.update(self._constructPagePostData(x))
-                postData['offset'] = str((x -1) * 30)
-                
-                ref = "http://www.neopets.com/safetydeposit.phtml?category=0&obj_name=&offset=" + str((x -1) * 30)
-                pg = self.usr.getPage("http://www.neopets.com/process_safetydeposit.phtml?checksub=scan", postData, {'Referer': ref}, True)
+                form = self._updateForm(x)
+                form.usePin = True
+                pg = form.submit()
                 
                 # Success redirects to SDB page
                 if "Your Safety Deposit Box" in pg.content:
                     return True
                 else:
-                    logging.getLogger("neolib.shop").exception("Could not verify if SDB inventory was updated.")
-                    logging.getLogger("neolib.html").info("Could not verify if SDB inventory was updated.", {'pg': pg})
+                    logging.getLogger("neolib.shop").exception("Could not verify if SDB inventory was updated.", {'pg': pg})
                     return False
         
     def _itemsOnPage(self, pg):
@@ -44,14 +41,14 @@ class SDB:
         
     def _hasPageChanged(self, pg):
         for item in self._itemsOnPage(pg):
-            if item.remove == True:
+            if item.remove != 0:
                 return True
         
         return False
         
-    def _constructPagePostData(self, pg):
-        postData = {}
+    def _updateForm(self, pg):
+        form = self.forms[pg]
         for item in self._itemsOnPage(pg):
-            postData['back_to_inv[' + item.id + ']'] = int(item.remove)
+            form['back_to_inv[' + item.id + ']'] = int(item.remove)
             
-        return postData
+        return form

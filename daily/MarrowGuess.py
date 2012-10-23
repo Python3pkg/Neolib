@@ -25,23 +25,21 @@ class MarrowGuess(Daily):
             # Neopets suggests between 200 - 800 pounds
             pounds = random.randrange(200, 800)
             
-        # Visit daily page
         pg = self.player.getPage("http://www.neopets.com/medieval/guessmarrow.phtml")
         
-        # Ensure we can guess
+        # Indicates we can't guess yet
         if not "enter your value as an integer" in pg.content:
             raise marrowNotAvailable
             
-        # Process daily
-        pg = self.player.getPage("http://www.neopets.com/medieval/process_guessmarrow.phtml", {'guess': str(pounds)})
+        form = pg.getForm(self.player, action="process_guessmarrow.phtml")
+        pg = form.submit()
         
-        # Check if we got it right
         if "WRONG!" in pg.content:
             return
             
         # NOTE: This daily is still under development
         # It is not currently known what a winning page looks like, thus it's logged until further development
-        logging.getLogger("neolib.html").info("Possible Marrow Guess winning page", {'pg': pg})
+        logging.getLogger("neolib.daily").info("Possible Marrow Guess winning page", {'pg': pg})
         self.win = True
             
     def getMessage(self):
