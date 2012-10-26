@@ -10,30 +10,41 @@ import logging
 
 class Item:
     
-    """Represents a main shop inventory
+    """Provides a common interface for manipulating Neopets items
     
-    Sub-classes the Inventory class to provide an interface for a main shop.
-    Automatically 
-    populates itself with the inventory items upon initialization.
-       
+    Contains attributes that are common among most Neopets items and has
+    functionality for grabbing item information and doing simple inventory
+    movement tasks. 
+    
+    Attributes
+       usr (User) -- User associated with this item
+       id (str) -- Item id
+       name (str) -- Item name
+       img (str) -- Item image remote URL
+       desc (str) -- Item description
+       price (int/str) -- Item price in NPs
+       type (str) -- Item type
+       weight (str) -- Item weight
+       rarity (str) -- Item rarity level
+       estVal (str) -- Item's estimated value according to Neopets
+       location (str) -- Item location
+       stock (str) -- Item stock if there's more than one in an inventory
+       pg (str) -- Page item is on if multiple pages exist in an inventory
+       remove (int) -- Indicates how many of this item to remove
+       owner (str) -- Item owner's username
+    
     Initialization
-       MainShopInventory(usr, shopID)
+       Item(itemName)
        
-       Loads the main shop inventory
+       Initializes the class with the given item name
        
        Parameters
-          usr (User) -- User to load the shop with
-          shopID (str) -- The main shop ID
-          
-       Raises
-          parseException
+          itemName (str) -- The item name
         
     Example
-       >>> shop = MainShop(usr, "1")
-       >>> for item in shop.inventory:
-       ...     print item.name
-       Green Apple
-       ...
+       >>> itm = Item("Green Apple")
+       >>> print itm.name
+       'Green Apple'
     """
     
     usr = None
@@ -70,6 +81,21 @@ class Item:
         self.name = itemName
         
     def populate(self, usr = None, itemID = None):
+        """ Attempts to populate an item's information with it's ID, returns result
+        
+        Note that the item id must already be set or otherwise supplied and that the item
+        must exist in the associated user's inventory. 
+           
+        Parameters:
+           usr (User) -- User who has the item
+           itemID (str) -- The item's object ID
+           
+        Returns
+           bool - True if successful, false otherwise
+           
+        Raises
+           parseException
+        """
         if not self.id and not itemID:
             return False
             
@@ -107,6 +133,15 @@ class Item:
         return True
         
     def sendTo(self, loc, usr=None):
+        """ Transfer's an item from user's inventory to another inventory, returns result
+           
+        Parameters:
+           loc (str) -- Location to send the item to (see Item.SHOP, Item.SDB, etc.)
+           usr (User) -- User who has the item
+           
+        Returns
+           bool - True if successful, false otherwise
+        """
         if not loc in self._messages:
             return False
         if not self.usr and not usr:

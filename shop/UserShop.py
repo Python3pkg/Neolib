@@ -1,9 +1,42 @@
+""":mod:`UserShop` -- Provides an interface for administrating a user shop
+
+.. module:: UserShop
+   :synopsis: Provides an interface for administrating a user shop
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.exceptions import invalidUser
 from neolib.exceptions import parseException
 from neolib.inventory.UserShopBackInventory import UserShopBackInventory
 import logging
 
 class UserShop:
+    
+    """Provides an interface for administrating a user shop
+    
+    Provides functionality for loading a user's shop inventory, updating
+    a shop inventory, loading basic shop details, and loading a shop's
+    sales history.
+    
+    Attributes
+       usr (User) -- User that owns the shop
+       name (str) -- Shop name
+       size (str) -- Shop size
+       keeperName(str) -- Shop keeper's name
+       keeperMessage(str) -- Shop keeper's message
+       keeperImg(str) -- Shop keeper's image
+       stock (str) -- Shop stock
+       max (str) -- Max shop stock
+       history (list) -- Shop sales history
+       inventory (UserShopInventory) -- Shop inventory
+       forms (dict) -- All HTML forms on each shop page
+        
+    Example
+       >>> usr.shop.load()
+       >>> usr.shop.inventory['Green Apple'].price = 1000
+       >>> usr.shop.update()
+       True
+    """
     
     usr = None
     name = None
@@ -28,6 +61,14 @@ class UserShop:
             
     @property
     def till(self):
+        """ Queries the current shop till and returns the amount
+           
+        Returns
+           str -- Amount of NPs in shop till
+           
+        Raises
+           parseException
+        """
         pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=till")
         
         try:
@@ -37,6 +78,14 @@ class UserShop:
             raise parseException
             
     def grabTill(self, nps):
+        """ Withdraws given number of NPs from the shop till, returns result
+           
+        Parameters:
+           nps (int) -- Number of NPs to withdraw
+           
+        Returns
+           bool - True if successful, False otherwise
+        """
         if not int(nps):
             return False
             
@@ -55,6 +104,11 @@ class UserShop:
             return False
     
     def load(self):
+        """ Loads the shop details and current inventory
+           
+        Raises
+           parseException
+        """
         pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=your")
         
         try:
@@ -76,6 +130,11 @@ class UserShop:
         self.forms = self.inventory.forms
             
     def loadHistory(self):
+        """ Loads the shop sale history 
+           
+        Raises
+           parseException
+        """
         pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=sales")\
         
         try:
@@ -104,6 +163,19 @@ class UserShop:
             raise parseException
             
     def update(self):
+        """ Updates the shop inventory, returns result
+        
+        Loops through all pages in the inventory and checks for any changed item
+        on a page. A changed item is identified as the price being different from
+        the original price, or the remove property of the item being set to anything
+        other than 0. Any pages with changed items are updated accordingly.
+           
+        Returns
+           bool - True if successful, false otherwise
+           
+        Raises
+           parseException
+        """
         for x in range(1, self.inventory.pages + 1):
             if self._hasPageChanged(x):
                 form = self._updateForm(x)

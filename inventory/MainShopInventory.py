@@ -17,8 +17,7 @@ class MainShopInventory(Inventory):
     """Represents a main shop inventory
     
     Sub-classes the Inventory class to provide an interface for a main shop.
-    Automatically 
-    populates itself with the inventory items upon initialization.
+    Automatically populates itself with the inventory items upon initialization.
        
     Initialization
        MainShopInventory(usr, shopID)

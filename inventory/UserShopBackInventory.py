@@ -115,6 +115,7 @@ class UserShopBackInventory(Inventory):
             tmpItem.stock = info[2].text
             tmpItem.type = info[3].text
             tmpItem.price = info[4].input['value']
+            tmpItem.oldPrice = tmpItem.price
             tmpItem.pos = int(info[4].input['name'].split("_")[1])
             tmpItem.desc = info[5].text
             tmpItem.id = info[6].find("select")['name'].split("[")[1].replace("]", "")
