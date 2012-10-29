@@ -1,9 +1,38 @@
+""":mod:`Bank` -- Provides an interface for administrating a user's bank
+
+.. module:: Bank
+   :synopsis: Provides an interface for administrating a user's bank
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.exceptions import notEnoughBalance
 from neolib.exceptions import parseException
 from neolib.exceptions import notEnoughNps
 import logging
 
 class Bank:
+    
+    """Provides an interface for administrating a user's bank
+    
+    Provides functionality for loading a user's bank account, withdrawing
+    and depositing neopoints, as well as collecting the user's daily interest.
+    
+    
+    Attributes
+       usr (User) -- User that owns the bank
+       type (str) -- Type of bank account
+       balance (str) -- Account balance
+       yearlyInterest (str) -- Account yearly interest
+       dailyInterest (str) -- Account daily interest
+       collectedInterest (bool) -- Whether or not daily interest has been collected yet
+        
+    Example
+       >>> usr.bank.load()
+       >>> usr.bank.balance
+       100000
+       >>> usr.bank.withdraw(100)
+       True
+    """
     
     usr = None
     type = ""
@@ -20,6 +49,11 @@ class Bank:
         self.usr = usr
             
     def load(self):
+        """ Loads the user's account details and 
+           
+        Raises
+           parseException
+        """
         pg = self.usr.getPage("http://www.neopets.com/bank.phtml")
         
         # Verifies account exists
@@ -48,6 +82,17 @@ class Bank:
                 raise parseException
     
     def deposit(self, amount):
+        """ Deposits specified neopoints into the user's account, returns result
+           
+        Parameters:
+           amount (int) -- Amount of neopoints to deposit
+           
+        Returns
+           bool - True if successful, False otherwise
+           
+        Raises
+           notEnoughNps
+        """
         pg = self.usr.getPage("http://www.neopets.com/bank.phtml")
         
         if self.usr.nps < int(amount):
@@ -66,9 +111,20 @@ class Bank:
             logging.getLogger("neolib.user").info("Failed to deposit NPs for unknown reason. User NPs: " + str(self.usr.nps) + ". Amount: " + str(amount), {'pg': pg})
             return False
         
-        self.updateBalance(pg)
+        self._updateBalance(pg)
             
     def withdraw(self, amount):
+        """ Withdraws specified neopoints from the user's account, returns result
+           
+        Parameters:
+           amount (int) -- Amount of neopoints to withdraw
+           
+        Returns
+           bool - True if successful, False otherwise
+           
+        Raises
+           notEnoughBalance
+        """
         pg = self.usr.getPage("http://www.neopets.com/bank.phtml")
         
         try:
@@ -93,9 +149,14 @@ class Bank:
             logging.getLogger("neolib.user").info("Failed to withdraw NPs for unknown reason. User NPs: " + str(self.usr.nps) + ". Amount: " + str(amount), {'pg': pg})
             return False
         
-        self.updateBalance(pg)
+        self._updateBalance(pg)
             
     def collectInterest(self):
+        """ Collects user's daily interest, returns result
+           
+        Returns
+           bool - True if successful, False otherwise
+        """
         if self.collectedInterest:
             return False
             
@@ -113,7 +174,7 @@ class Bank:
             return False
         
         
-    def updateBalance(self, pg = None):
+    def __updateBalance(self, pg = None):
         if not pg:
             pg = self.usr.getPage("http://www.neopets.com/bank.phtml")
         

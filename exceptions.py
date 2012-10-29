@@ -1,3 +1,10 @@
+""":mod:`exceptions` -- Provides all exceptions for Neolib
+
+.. module:: exceptions
+   :synopsis: Provides all exceptions for Neolib
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 # General
 class parseException(Exception):
     pass

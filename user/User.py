@@ -1,3 +1,10 @@
+""":mod:`SDB` -- Represents a Neopets user account
+
+.. module:: SDB
+   :synopsis: Represents a Neopets user account
+.. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
+"""
+
 from neolib.exceptions import logoutException
 from neolib.exceptions import neopetsOfflineException
 from neolib.exceptions import noCookiesForDomain
@@ -17,6 +24,72 @@ import hashlib
 import pickle
 
 class User:
+    
+    """Represents a Neopets user account
+    
+    The glue of this library, this class represents a Neopets user account
+    in the scope of an automated program. It links together many key components
+    of the library including Bank, UserShop, SDB, and UserInventory. It allows
+    for easy configuration, browser synchronization, and other basic configuration
+    like username, password, pin, etc. This class is used as the focal point for
+    the rest of the library.
+    
+    
+    Attributes
+       username (str) -- User's username
+       password (str) -- User's password
+       session (request-client) -- User's HTTP session
+       inventory (UserInventory) -- User's inventory
+       bank (Bank) -- User's bank
+       shop (UserShop) -- User's shop
+       SDB (SDB) -- User's safety deposit box
+       nps (int) -- User's NPs
+       activePet (Pet) -- User's current active neopet
+       pin (int) -- User's pin
+       config (Configuration) -- User's configuration
+       hooks (list[func]) -- User's hooks for getPage()
+       proxy (tuple) -- User's proxy
+       browser (str) -- User's browser for syncing
+       RECallBack (func) -- User's callback function for random events
+       lastPage (str) -- Last page user visited
+       useRef (bool) -- Whether or not to automatically append a referrer to requests (uses User.lastPage)
+       autoLogin (bool) -- Whether or not to automatically log back in when a logout is detected
+       useHooks (bool) -- Whether or not to use hooks with User.getPage()
+       browserSync (bool) -- Whether or not to synchronize cookies with a web browser
+       savePassword (bool) -- Whether or not to save the user's password in the configuration
+       configVars (list[str]) -- List of attributes to save with User.exportVars()
+       loggedIn (bool) -- Whether or not the user is logged in
+       browsers (list[str]) -- List of all installed browsers on the local machine
+       
+    Initialization
+       User(username, password="", pin=None)
+       
+       Initializes the user with the given details and attempts to load any configuration
+       
+       Sets the username, password, and pin. Checks if configuration is loaded and attempts
+       to load it if not. Searches the configuration to see if this username has any saved 
+       configuration data. If none is found, creates a section for this username with some
+       default settings. If configuration is found, loads the configuration, including
+       any exported attribute values. Also loads some default hooks which accomplish
+       tasks like auto-login and keeping the activePet and NPs up to date.
+       
+       Parameters
+          username (str) -- User's username
+          password (str) -- User's password
+          pin (int) -- User's 4 digit pin
+        
+    Example
+       >>> usr = User("username", "password")
+       >>> usr.login()
+       True
+       >>> usr.inventory.load()
+       >>> usr.inventory
+       {'someitem': Item<...>}
+       >>> pg = usr.getPage("http://www.neopets.com/")
+       >>> pg.title
+       'Welcome to Neopets!'
+    """
+    
     username = ""
     password = ""
     
@@ -83,6 +156,11 @@ class User:
         return BrowserCookies.loadBrowsers()
     
     def login(self):
+        """ Logs the user in, returns the result
+           
+        Returns
+           bool - Whether or not the user logged in successfully
+        """
         # Request index to obtain initial cookies and look more human
         pg = self.getPage("http://www.neopets.com")
         
@@ -94,12 +172,21 @@ class User:
         return self.username in pg.content
     
     def addHook(self, hook):
+        """ Adds a hook for User.getPage()
+        """
         self.hooks.append(hook)
         
     def setRandomEventCallback(self, cb):
+        """ Sets the callback function for when a random event is detected
+        """
         self.RECallback = cb
     
     def sync(self, browser):
+        """ Enables cookie synchronization with specified browser, returns result
+           
+        Returns
+           bool - True if successful, false otherwise
+        """
         BrowserCookies.loadBrowsers()
         if not browser in BrowserCookies.browsers:
                 return False
@@ -109,9 +196,20 @@ class User:
         return True
         
     def deSync(self):
+        """ Disables browser synchronization
+        """
         self.browserSync = False
         
     def save(self):
+        """ Exports all user attributes to the user's configuration
+        
+        Saves the values for each attribute stored in User.configVars
+        into the user's configuration. The password is automatically
+        encoded and salted to prevent saving it as plaintext. The 
+        session is pickled, encoded, and compressed to take up
+        less space in the configuration file. All other attributes
+        are saved in plain text.
+        """
         # Code to load all attributes
         for prop in dir(self):
             if getattr(self, prop) == None: continue
@@ -137,6 +235,29 @@ class User:
             self.config.write()
         
     def getPage(self, url, postData = None, vars = None, usePin = False):
+        """ Requests and returns a page using the user's session
+        
+        If useRef is set to true, automatically appends a referer using
+        the user's last page to the request. If usePin is set to true,
+        automatically appends the user's pin to the POST data. If browser
+        sync is enabled, automatically retrieves and uses the browser's
+        most up to date cookies for the request and attempts to save the
+        updated cookies to the browser's cookie database. If useHooks is
+        set to true, delivers the resulting Page object to each hook
+        function for processing. Finally, returns the requested page.
+        
+        Parameters
+           url (str) -- URL of remote page
+           postData (dict) -- POST data to send with request
+           vars (dict) -- Additional HTTP Header variables to send with request
+           usePin (bool) -- Whether or not to send the user's pin with the request
+           
+        Returns
+           Page -- Requested page
+           
+        Raises
+           neopetsOfflineException
+        """
         # If using a referer is desired and one has not already been supplied, 
         # then set the referer to the user's last visited page.
         if self.useRef and len(self.lastPage) > 0:
