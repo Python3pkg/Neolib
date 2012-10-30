@@ -31,7 +31,7 @@ class MarrowGuess(Daily):
         if not "enter your value as an integer" in pg.content:
             raise marrowNotAvailable
             
-        form = pg.getForm(self.player, action="process_guessmarrow.phtml")
+        form = pg.form(action="process_guessmarrow.phtml")
         pg = form.submit()
         
         if "WRONG!" in pg.content:

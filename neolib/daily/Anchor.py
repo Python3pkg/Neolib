@@ -22,7 +22,7 @@ class Anchor(Daily):
         if "already done your share" in pg.content:
             raise dailyAlreadyDone
         
-        form = pg.getForm(self.player, id="form-fire-cannon")
+        form = pg.form(id="form-fire-cannon")
         pg = form.submit()
                 
         # Indicates a prize

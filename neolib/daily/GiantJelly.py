@@ -20,7 +20,7 @@ class GiantJelly(Daily):
     def play(self):
         pg = self.player.getPage("http://www.neopets.com/jelly/jelly.phtml")
         
-        form = pg.getForm(self.player, action="jelly.phtml")
+        form = pg.form(action="jelly.phtml")
         pg = form.submit()
         
         if "NO!" in pg.content:

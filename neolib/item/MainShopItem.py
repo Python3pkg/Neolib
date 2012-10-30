@@ -55,7 +55,7 @@ class MainShopItem(Item):
            failedOCR
         """
         pg = self.usr.getPage("http://www.neopets.com/haggle.phtml?obj_info_id=%s&stock_id=%s&brr=%s" % (self.id, self.stockid, self.brr))
-        form = pg.getForm(name="haggleform")
+        form = pg.form(name="haggleform")
         
         form['x'], form['y'] = self.crackOCR(StringIO.StringIO(self.usr.getPage("http://www.neopets.com" + form.image).content))
         form['current_offer'] = price
@@ -63,7 +63,7 @@ class MainShopItem(Item):
         if pause != 0:
             time.sleep(pause)
         
-        pg = form.submit(self.usr)
+        pg = form.submit()
         
         if "I accept" in pg.content:
             return True

@@ -151,7 +151,7 @@ class Item:
         # Request the item page first to look human
         pg = usr.getPage("http://www.neopets.com/iteminfo.phtml?obj_id=" + str(self.id))
         
-        form = pg.getForm(usr, name="item_form")
+        form = pg.form(name="item_form")
         form['action'] = loc
         
         pg = form.submit()

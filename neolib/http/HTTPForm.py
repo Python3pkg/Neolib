@@ -93,6 +93,14 @@ class HTTPForm:
             
         return self.usr.getPage(self.action, self.items, {'Referer': self.url}, self.usePin)
         
+    def update(self, d):
+        """ Updates the form data with the given dictionary
+        
+        Parameters
+           d - Dictionary to update with
+        """
+        self.items.update(d)
+        
     def __getitem__(self, key):
         return self.items[key]
         

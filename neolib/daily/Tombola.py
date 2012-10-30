@@ -8,6 +8,7 @@
 from neolib.daily.Daily import Daily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
+from neolib.exceptions import tombolaClosed
 import logging
 
 class Tombola(Daily):
@@ -23,7 +24,10 @@ class Tombola(Daily):
     def play(self):
         pg = self.player.getPage("http://www.neopets.com/island/tombola.phtml")
 	    
-        form = pg.getForm(self.player, action="tombola2.phtml")
+        if "sign on the Tombola says" in pg.content:
+            raise tombolaClosed()
+        
+        form = pg.form(action="tombola2.phtml")
         pg = form.submit()
         
         if "only allowed one" in pg.content:

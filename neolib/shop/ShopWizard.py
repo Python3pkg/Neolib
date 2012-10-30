@@ -53,7 +53,7 @@ class ShopWizard:
     waitTime = 5
     
     @staticmethod
-    def search(usr, text, area = "shop", scope = "exact", min = "0", max = "99999"):
+    def search(usr, item, area = "shop", scope = "exact", min = "0", max = "99999"):
         """ Searches the shop wizard for the given item, returns result
         
         Uses the given parameters to send a search request with the Shop Wizard.
@@ -62,7 +62,7 @@ class ShopWizard:
            
         Parameters:
            usr (User) -- User to search with
-           text (str) -- Text to search for
+           item (str, Item) -- Item to search for
            area (str) -- Area to search in (ShopWizard.SHOP, ShopWizard.GALLERY)
            scope (str) -- Scope to search for (ShopWizard.CONTAINING, ShopWizard.EXACT)
            min (str) -- Minimum price
@@ -80,7 +80,7 @@ class ShopWizard:
         if not usr:
             raise invalidUser
         
-        if not text:
+        if not item:
             raise invalidSearch
             
         if area != ShopWizard.SHOP and area != ShopWizard.GALLERY:
@@ -99,23 +99,29 @@ class ShopWizard:
             logging.getLogger("neolib.shop").info("Invalid max value supplied for shop wizard search: " + max)
             raise invalidSearch
             
-        post = {'type': 'process_wizard', 'feedset': '0', 'shopwizard': text, 'table': area, 'criteria': scope, 'min_price': min, 'max_price': max}
-        pg = usr.getPage("http://www.neopets.com/market.phtml", post, {'Referer': 'http://www.neopets.com/market.phtml'})
+        if isinstance(item, Item):
+            item = item.name
+        
+        pg = usr.getPage("http://www.neopets.com/market.phtml?type=wizard")
+        
+        form = pg.form(action="market.phtml")
+        form.update({'shopwizard': item, 'table': area, 'criteria': scope, 'min_price': str(min), 'max_price': str(max)})
+        pg = form.submit()
         
         # Indicates shop wizard banned
         if "too many searches" in pg.content:
-            time = pg.find("b", text = "Whoa there, too many searches!").parent.p.b.text
+            time = pg.find("b", text = "Whoa there, too many searches!").parent.p.b.item
             e = shopWizBanned()
             e.time = time
             raise e
             
         # Indicates a faerie quest
         if "You're working for a faerie" in pg.content:
-            logging.getLogger("neolib.shop").info("Could not search for " + text + ". A Faerie quest is active")
+            logging.getLogger("neolib.shop").info("Could not search for " + item + ". A Faerie quest is active")
             raise activeQuest
             
         if "did not find" in pg.content:
-            if text in pg.content:
+            if item in pg.content:
                 return False # Indicates UB item
             elif "...</span>" in pg.content:
                 # Probably invalid item
@@ -139,7 +145,7 @@ class ShopWizard:
            
         Parameters:
            usr (User) -- User to search with
-           item (str) -- Item to search for
+           item (str, Item) -- Item to search for
            searches (int) -- Number of times to search for the item
            method (str) -- Pricing method
            deduct (int) -- Amount to deduct from the price (if applicable)
@@ -148,6 +154,9 @@ class ShopWizard:
            int -- The item price
         """
         if not method in ShopWizard.methods: raise invalidMethod()
+        
+        if isinstance(item, Item):
+            item = item.name
         
         prices = []
         dets = {}

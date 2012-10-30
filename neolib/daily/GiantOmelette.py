@@ -20,7 +20,7 @@ class GiantOmelette(Daily):
     def play(self):
         pg = self.player.getPage("http://www.neopets.com/prehistoric/omelette.phtml")
         
-        form = pg.getForm(self.player, action="omelette.phtml")
+        form = pg.form(action="omelette.phtml")
         pg = form.submit()
         
         if "NO!" in pg.content:

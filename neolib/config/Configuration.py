@@ -45,7 +45,7 @@ class Configuration(MutableMapping):
     """
     
     path = "config.json"
-    __config = None
+    _config = None
     
     def __init__(self, data):
         self.__dict__ = data
@@ -116,8 +116,8 @@ class Configuration(MutableMapping):
             return True
             
         try:
-            Configuration.__config = Configuration(json.loads(data))
-            Configuration._makeConfig(Configuration.__config)
+            Configuration._config = Configuration(json.loads(data))
+            Configuration._makeConfig(Configuration._config)
         except Exception as e:
             logging.getLogger("neolib.config").exception("Failed to read configuration file: " + Configuration.path)
             return False
@@ -131,7 +131,7 @@ class Configuration(MutableMapping):
         Returns
            Configuration - Tiered configuration object containing contents loaded from Configuration.initialize()
         """
-        return Configuration.__config
+        return Configuration._config
     
     @staticmethod
     def loaded():
@@ -140,18 +140,19 @@ class Configuration(MutableMapping):
         Returns
            bool - Whether Configuration.initialize() has been called yet or not
         """
-        return bool(Configuration.__config)
+        return bool(Configuration._config)
         
     @staticmethod
     def _writeConfig():
         try:
             f = open(Configuration.path, 'w')
-            f.write(json.dumps(Configuration._makeDict(Configuration.__config), sort_keys = True, indent = 4)) # Produces JSONified version of configuration data
+            c = Configuration._makeDict(Configuration._config)
+            f.write(json.dumps(c, sort_keys = True, indent = 4)) # Produces JSONified version of configuration data
             f.close()
             
-            Configuration._makeConfig(Configuration.__config)
+            Configuration._makeConfig(Configuration._config)
         except Exception:
-            logging.getLogger("neolib.config").exception("Failed to write configuration file: " + Configuration.path + "\n With content: \n" + Configuration._makeDict(Configuration.__config))
+            logging.getLogger("neolib.config").exception("Failed to write configuration file: " + Configuration.path)
             return False
             
         return True
@@ -190,6 +191,6 @@ class Configuration(MutableMapping):
             logging.getLogger("neolib.config").exception("Failed to create configuration file: " + path)
             return False
             
-        Configuration.__config = Configuration(default)
-        Configuration._makeConfig(Configuration.__config)
+        Configuration._config = Configuration(default)
+        Configuration._makeConfig(Configuration._config)
                 

@@ -90,7 +90,7 @@ class UserShop:
             return False
             
         pg = self.usr.getPage("http://www.neopets.com/market.phtml?type=till")
-        form = pg.getForm(self.usr, action="process_market.phtml")
+        form = pg.form(action="process_market.phtml")
         
         form['amount'] = str(nps)
         form.usePin = True

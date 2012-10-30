@@ -164,9 +164,8 @@ class User:
         # Request index to obtain initial cookies and look more human
         pg = self.getPage("http://www.neopets.com")
         
-        form = pg.getForm(self, action="/login.phtml")
-        form['username'] = self.username
-        form['password'] = self.password
+        form = pg.form(action="/login.phtml")
+        form.update({'username': self.username, 'password': self.password})
         pg = form.submit()
         
         return self.username in pg.content
@@ -201,14 +200,14 @@ class User:
         self.browserSync = False
         
     def save(self):
-        """ Exports all user attributes to the user's configuration
+        """ Exports all user attributes to the user's configuration and writes configuration
         
         Saves the values for each attribute stored in User.configVars
         into the user's configuration. The password is automatically
         encoded and salted to prevent saving it as plaintext. The 
         session is pickled, encoded, and compressed to take up
         less space in the configuration file. All other attributes
-        are saved in plain text.
+        are saved in plain text. Writes the changes to the configuration file.
         """
         # Code to load all attributes
         for prop in dir(self):
@@ -232,7 +231,9 @@ class User:
                 
             self.config[prop] = str(getattr(self, prop))
                 
-            self.config.write()
+        if 'password' in self.config and not self.savePassword: del self.config.password
+        self.config.write()
+        self.__loadConfig()
         
     def getPage(self, url, postData = None, vars = None, usePin = False):
         """ Requests and returns a page using the user's session
@@ -274,7 +275,7 @@ class User:
         if bool(self.browserSync):
             self.__syncCookies()
         
-        pg = Page(url, self.session, postData, vars, self.proxy)
+        pg = Page(url, usr=self, postData=postData, vars=vars, proxy=self.proxy)
         
         if self.browserSync:
             self.__writeCookies()

@@ -14,8 +14,8 @@ class Page(BeautifulSoup):
     """Represents an HTML web page
     
     Provides an interface for handling an HTTP web page by subclassing the popular
-    HTML parsing class, BeautifulSoup, to allow for easy page exploration and utilizing
-    the Requests class for handling HTTP requests. This class aims to intertwine both
+    HTML parsing library, BeautifulSoup, to allow for easy page exploration and utilizing
+    the Requests library for handling HTTP requests. This class aims to intertwine both
     popular libraries to create one accessible class. 
     
     Attributes
@@ -26,9 +26,10 @@ class Page(BeautifulSoup):
        url (str) -- Page URL
        postData(dict) -- POST data Page was initialized with
        vars (dict) -- Additional HTTP Request Header variables Page was intiialized with
+       usr (User) -- User that initialized the page
        
     Initialization
-       Page(url, session=None, postData=None, vars=None, proxy=None)
+       Page(url, usr=None, session=None, postData=None, vars=None, proxy=None)
        
        Requests a remote document and initializes Page with the data
        
@@ -38,6 +39,7 @@ class Page(BeautifulSoup):
        
        Parameters
           url (str) -- Remote URL address of the page
+          usr (User) -- Optional user to initiate the page with
           session (request-client) -- Requests session to use with making the request
           postData (dict) -- POST data {name: 'value'} sent with HTTP Request
           vars (dict) -- HTTP Request variables {name: 'value'} sent with HTTP Request
@@ -62,21 +64,28 @@ class Page(BeautifulSoup):
     postData = None
     vars = None
     
+    usr = None
+    
     _defaultVars = {"USER-AGENT": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:14.0) Gecko/20100101 Firefox/14.0.1",
                    "ACCEPT": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                    "ACCEPT-LANGUAGE": "en-us,en;q=0.5"}
     
-    def __init__(self, url, session=None, postData=None, vars=None, proxy=None):
+    def __init__(self, url, usr=None, session=None, postData=None, vars=None, proxy=None):
         self.url = url
         self.postData = postData
         self.vars = vars
         
-        if not session:
+        if not session and not usr:
             if postData:
                 r = requests.post(url, data=postData, headers=vars, proxies=proxy)
             else:
                 r = requests.get(url, headers=vars, proxies=proxy)
-        else:
+        elif usr:
+            if postData:
+                r = usr.session.post(url, data=postData, headers=vars, proxies=proxy)
+            else:
+                r = usr.session.get(url, headers=vars, proxies=proxy)
+        elif session:
             if postData:
                 r = session.post(url, data=postData, headers=vars, proxies=proxy)
             else:
@@ -86,13 +95,14 @@ class Page(BeautifulSoup):
         self.request = r.request
         self.header = r.headers
         self.content = r.text
+        self.usr = usr
         
         if "text/html" in r.headers['content-type']:
             BeautifulSoup.__init__(self, r.content)
         else:
             self.content = r.content
         
-    def getForm(self, usr, **kwargs):
+    def form(self, usr=None, **kwargs):
         """ Returns an HTTPForm that matches the given criteria
         
         Searches for an HTML form in the page's content matching the criteria
@@ -106,6 +116,7 @@ class Page(BeautifulSoup):
         Returns
            HTTPForm - Represents the HTML form
         """
+        if self.usr: usr = self.usr
         if self.find("form", kwargs):
             return HTTPForm(usr, self.url, self.find("form", kwargs))
     

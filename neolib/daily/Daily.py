@@ -10,6 +10,7 @@ from neolib.exceptions import invalidDaily
 from neolib.exceptions import dailyAlreadyDone
 from neolib.exceptions import parseException
 from neolib.exceptions import marrowNotAvailable
+from neolib.exceptions import tombolaClosed
 
 class Daily(object):
     
@@ -76,6 +77,8 @@ class Daily(object):
                 raise invalidDaily
                 
         for daily in Daily.__subclasses__():
+            if not daily.__name__ in dailyList: continue
+            
             inst = daily(usr)
             try:
                 inst.play()
@@ -86,3 +89,5 @@ class Daily(object):
                 yield daily.__name__ + ": A serious error has occurred. Please refer to the logs."
             except marrowNotAvailable:
                 yield daily.__name__ + ": Not available at this time!"
+            except tombolaClosed:
+                yield daily.__name__ + ": Tombola is currently closed!"

@@ -98,7 +98,8 @@ class KitchenQuest:
             logging.getLogger("neolib.quest").exception("Failed to parse quest recipe", {'pg': pg})
             raise parseException
             
-        pg = usr.getPage("http://www.neopets.com/island/kitchen2.phtml", {'food_desc': self.recipe})
+        form = pg.form(action="kitchen2.phtml")
+        pg = form.submit()
         
         try:
             hour = pg.find("td", "content").find_all("b")[2].text
@@ -175,7 +176,9 @@ class KitchenQuest:
         Returns
            bool - True if successful, otherwise False
         """
-        pg = self.usr.getPage("http://www.neopets.com/island/kitchen2.phtml", {'type': 'gotingredients'})
+        
+        form = pg.form(action="kitchen2.phtml")
+        pg = form.submit()
         
         if "Woohoo" in pg.content:
             try:

@@ -22,7 +22,7 @@ class FruitMachine(Daily):
         if "already had your free spin" in pg.content:
             raise dailyAlreadyDone
             
-        form = pg.getForm(self.player, method="post")
+        form = pg.form(method="post")
         pg = form.submit()
         
         # Indicates we won

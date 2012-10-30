@@ -48,7 +48,7 @@ class MainShop:
     def load(self):
         """ Loads the shop name and inventory
         """
-        pg = usr.getPage("http://www.neopets.com/objects.phtml?type=shop&obj_type=" + shopID)
+        pg = self.usr.getPage("http://www.neopets.com/objects.phtml?type=shop&obj_type=" + self.id)
         
         self.name = pg.find("td", "contentModuleHeader").text.strip()
         self.inventory = MainShopInventory(self.usr, self.id)

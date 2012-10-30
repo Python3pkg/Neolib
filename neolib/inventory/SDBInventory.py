@@ -59,7 +59,7 @@ class SDBInventory(Inventory):
             raise invalidUser
             
         pg = usr.getPage("http://www.neopets.com/safetydeposit.phtml")
-        self.forms[1] = pg.getForm(usr, name="boxform")
+        self.forms[1] = pg.form(name="boxform")
         self.items = {}
         
         pages = None
@@ -85,7 +85,7 @@ class SDBInventory(Inventory):
             i = 2
             for page in pages:
                 pg = usr.getPage("http://www.neopets.com/safetydeposit.phtml?offset=" + page['value'])
-                self.forms[i] = pg.getForm(usr, name="boxform")
+                self.forms[i] = pg.form(name="boxform")
                 
                 # Ensure there's items on the page
                 if "End of results reached" in pg.content:

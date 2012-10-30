@@ -64,7 +64,7 @@ class UserShopBackInventory(Inventory):
         if not pg:
             pg = usr.getPage("http://www.neopets.com/market.phtml?type=your")
         
-        self.forms[1] = pg.getForm(usr, action="process_market.phtml")
+        self.forms[1] = pg.form(action="process_market.phtml")
         pages = None
         # Checks if multiple pages exist
         if "[1-30]" in pg.content:
@@ -87,7 +87,7 @@ class UserShopBackInventory(Inventory):
             i = 2
             for page in pages:
                 pg = usr.getPage("http://www.neopets.com/" + page['href'])
-                self.forms[i] = pg.getForm(usr, action="process_market.phtml")
+                self.forms[i] = pg.form(action="process_market.phtml")
                 
                 try:
                     self.__loadItems(usr, pg, i)

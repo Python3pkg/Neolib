@@ -61,6 +61,9 @@ class marrowNotAvailable(Exception):
 class invalidDaily(Exception):
     pass
     
+class tombolaClosed(Exception):
+    pass
+    
     
     
 # Inventory

@@ -20,7 +20,7 @@ class PetPetPark(Daily):
     def play(self):
         pg = self.player.getPage("http://www.neopets.com/petpetpark/daily.phtml")
         
-        form = pg.getForm(self.player, action="/petpetpark/daily.phtml")
+        form = pg.form(action="/petpetpark/daily.phtml")
         pg = form.submit()
         
         if "already collected your prize" in pg.content:
