@@ -44,10 +44,10 @@ class HTMLFilter(logging.Filter):
         pg = record.args['pg']
         
         # Format a log message that details the page
-        ret = "Message: " + record.msg + "\nLine Number: " + str(record.lineno) + "\nURL: " + str(pg.url) + "\nPost Data: " + str(pg.postData) + "\nCookies" + str(pg.request.cookies) + "\nAdditional Vars: " + str(pg.vars)
+        ret = "Message: " + record.msg + "\nLine Number: " + str(record.lineno) + "\nURL: " + str(pg.url) + "\nPost Data: " + str(pg.postData) + "\nAdditional Vars: " + str(pg.vars)
         ret += "\n\n\n" + str(pg.header) + "\n\n" + pg.content
         
         # Write the file
-        f = open(fileName, "w")
-        f.write(ret.encode('utf-8'))
+        f = open(fileName, "w", encoding='utf-8')
+        f.write(ret)
         f.close()

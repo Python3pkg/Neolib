@@ -141,10 +141,10 @@ class Page(BeautifulSoup):
         s = requests.session()
         if not Configuration.loaded():
             if not Configuration.initialize():
-                s.config['base_headers'].update(Page._defaultVars)
+                s.headers.update(Page._defaultVars)
             else:
-                s.config['base_headers'].update(Configuration.getConfig().core.HTTPHeaders.toDict())
+                s.headers.update(Configuration.getConfig().core.HTTPHeaders.toDict())
         else:
-            s.config['base_headers'].update(Configuration.getConfig().core.HTTPHeaders.toDict())
+            s.headers.update(Configuration.getConfig().core.HTTPHeaders.toDict())
         
         return requests.session()

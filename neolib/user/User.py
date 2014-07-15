@@ -167,6 +167,8 @@ class User:
         form = pg.form(action="/login.phtml")
         form.update({'username': self.username, 'password': self.password})
         pg = form.submit()
+		
+        logging.getLogger("neolib.user").info("Login check", {'pg': pg})
         
         return self.username in pg.content
     

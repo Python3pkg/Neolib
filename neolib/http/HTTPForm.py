@@ -5,7 +5,7 @@
 .. moduleauthor:: Joshua Gilman <joshuagilman@gmail.com>
 """
 
-import urlparse
+from urllib.parse import urlparse
 
 class HTTPForm:
     
@@ -76,7 +76,7 @@ class HTTPForm:
         Returns
            Page - The resulting page
         """
-        u = urlparse.urlparse(self.url)
+        u = urlparse(self.url)
         
         if not self.action:
             self.action = self.url
