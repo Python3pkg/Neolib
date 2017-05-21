@@ -123,9 +123,9 @@ class ChromeCookies(BrowserCookies):
             path = os.getenv("HOME") + "/.config/google-chrome/Default/Cookies"
             return path
         
-        import _winreg
-        key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, 'Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders')
-        path = _winreg.QueryValueEx(key, 'Local AppData')[0]
+        import winreg
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 'Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders')
+        path = winreg.QueryValueEx(key, 'Local AppData')[0]
         path = os.path.join(path, 'Google\\Chrome\\User Data\\Default\\Cookies')
         
         return path

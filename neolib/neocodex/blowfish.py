@@ -522,7 +522,7 @@ class Blowfish:
         (beinting to the same logical stream of buffers) can be encrypted
         with this method one after the other without any intermediate work.
         """
-        if type(data) != types.StringType:
+        if type(data) != bytes:
             raise RuntimeException("Can only work on 8-bit strings")
         result = []
         for ch in data:

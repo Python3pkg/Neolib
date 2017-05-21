@@ -177,7 +177,7 @@ class ShopWizard:
         if sum(prices) == len(prices) * -1:
             return False
             
-        prices = list(filter(lambda x: x != -1, prices))
+        prices = list([x for x in prices if x != -1])
             
         if method == ShopWizard.RETLOW:
             price = sorted(prices)[0]

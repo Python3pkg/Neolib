@@ -7,7 +7,7 @@
 
 from neolib.neocodex.blowfish import Blowfish
 import requests
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import random
 import json
 
@@ -99,12 +99,12 @@ class CodexAPI:
     def _callAPI(data):
         # Compile the items for the api in a random order.
         send_list = []
-        for key, value in random.sample(data.items(), len(data)):
+        for key, value in random.sample(list(data.items()), len(data)):
             # Lists and dicts cannot be transferd as str, use simplejson.dumps
             if isinstance(value, (list, dict)):
                 value = json.dumps(value)
             
-            send_list.append("%s=%s" % (key, urllib.quote(str(value))))
+            send_list.append("%s=%s" % (key, urllib.parse.quote(str(value))))
             
         send_encode = "&".join(send_list)
         

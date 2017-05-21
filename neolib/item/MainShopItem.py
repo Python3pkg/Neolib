@@ -8,7 +8,7 @@
 from neolib.exceptions import failedOCR
 from neolib.item.Item import Item
 import Image
-import StringIO
+import io
 import time
 
 class MainShopItem(Item):
@@ -57,7 +57,7 @@ class MainShopItem(Item):
         pg = self.usr.getPage("http://www.neopets.com/haggle.phtml?obj_info_id=%s&stock_id=%s&brr=%s" % (self.id, self.stockid, self.brr))
         form = pg.form(name="haggleform")
         
-        form['x'], form['y'] = self.crackOCR(StringIO.StringIO(self.usr.getPage("http://www.neopets.com" + form.image).content))
+        form['x'], form['y'] = self.crackOCR(io.StringIO(self.usr.getPage("http://www.neopets.com" + form.image).content))
         form['current_offer'] = price
         
         if pause != 0:

@@ -61,11 +61,11 @@ class HTTPForm:
         
         self.items = {}
         for inp in content.find_all("input"):
-            if inp.has_key("name"):
+            if "name" in inp:
                 if inp['type'] == 'submit': continue
-                if not inp.has_key("value"): inp['value'] = ""
+                if "value" not in inp: inp['value'] = ""
                 self.items[inp['name']] = inp['value']
-            elif inp.has_key('type'):
+            elif 'type' in inp:
                 if inp['type'] == 'image':
                     self.image = inp['src']
                     self.items.update({'x': '', 'y': ''})
